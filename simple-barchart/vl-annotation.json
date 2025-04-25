@@ -1,0 +1,126 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "width": 600,
+  "height": 400,
+  "title": "Car Price vs Sales (Annotated)",
+  "data": {
+    "url": "data/input.json"
+  },
+  "mark": {
+    "type": "bar"
+  },
+  "encoding": {
+    "x": {
+      "field": "price",
+      "type": "quantitative",
+      "title": "Price ($)",
+      "scale": {
+        "domain": [
+          15000,
+          65000
+        ]
+      }
+    },
+    "y": {
+      "field": "sales",
+      "type": "quantitative",
+      "title": "Sales (units)",
+      "scale": {
+        "domain": [
+          0,
+          2000
+        ]
+      }
+    },
+    "color": {
+      "field": "model",
+      "type": "nominal",
+      "legend": {
+        "title": "Car Model"
+      }
+    },
+    "tooltip": [
+      {
+        "field": "model",
+        "type": "nominal",
+        "title": "Model"
+      },
+      {
+        "field": "price",
+        "type": "quantitative",
+        "title": "Price ($)"
+      },
+      {
+        "field": "mpg",
+        "type": "quantitative",
+        "title": "MPG"
+      },
+      {
+        "field": "sales",
+        "type": "quantitative",
+        "title": "Sales"
+      }
+    ]
+  },
+  "annotations": [
+    {
+      "target": {
+        "type": "data-index",
+        "index": 4
+      },
+      "text": {
+        "text": "Hybrid\nBest balance of price and efficiency",
+        "style": {
+          "lineBreak": "\n"
+        },
+        "position": "upperMiddle"
+      },
+      "enclosure": {
+        "padding": 5
+      }
+    },
+    {
+      "target": {
+        "type": "data-index",
+        "index": 8
+      },
+      "text": {
+        "text": "Sports cars are least efficient",
+        "position": "lowerMiddle",
+        "dx": -20
+      }
+    },
+    {
+      "target": {
+        "type": "data-index",
+        "index": 5
+      },
+      "text": {
+        "text": "Electric cars have highest efficiency",
+        "position": "upperMiddle",
+        "dx": -20
+      }
+    },
+    {
+      "target": "none",
+      "text": {
+        "text": "Trend: Higher price = Lower efficiency",
+        "position": "upperMiddle",
+        "dx": -20
+      },
+      "indicator": {
+        "type": "trend",
+        "start": {
+          "type": "pixel-space",
+          "x": 10,
+          "y": 10
+        },
+        "end": {
+          "type": "pixel-space",
+          "x": 100,
+          "y": 100
+        }
+      }
+    }
+  ]
+}

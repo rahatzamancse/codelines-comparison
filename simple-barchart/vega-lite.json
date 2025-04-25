@@ -1,0 +1,308 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "width": 600,
+  "height": 400,
+  "title": "Car Price vs Sales (Annotated)",
+  "data": {
+    "url": "data/input.json"
+  },
+  "layer": [
+    {
+      "mark": {
+        "type": "bar"
+      },
+      "encoding": {
+        "x": {
+          "field": "price",
+          "type": "quantitative",
+          "title": "Price ($)",
+          "scale": {
+            "domain": [
+              15000,
+              65000
+            ]
+          }
+        },
+        "y": {
+          "field": "sales",
+          "type": "quantitative",
+          "title": "Sales (units)",
+          "scale": {
+            "domain": [
+              0,
+              2000
+            ]
+          }
+        },
+        "color": {
+          "field": "model",
+          "type": "nominal",
+          "legend": {
+            "title": "Car Model"
+          }
+        },
+        "tooltip": [
+          {
+            "field": "model",
+            "type": "nominal",
+            "title": "Model"
+          },
+          {
+            "field": "price",
+            "type": "quantitative",
+            "title": "Price ($)"
+          },
+          {
+            "field": "mpg",
+            "type": "quantitative",
+            "title": "MPG"
+          },
+          {
+            "field": "sales",
+            "type": "quantitative",
+            "title": "Sales"
+          }
+        ]
+      }
+    },
+    {
+      "transform": [
+        {
+          "filter": "datum.model === 'Electric'"
+        }
+      ],
+      "mark": {
+        "type": "text",
+        "fontSize": 12,
+        "fontWeight": "bold",
+        "dy": -15,
+        "align": "center"
+      },
+      "encoding": {
+        "x": {
+          "field": "price",
+          "type": "quantitative"
+        },
+        "y": {
+          "field": "sales",
+          "type": "quantitative"
+        },
+        "text": {
+          "value": "Electric cars have highest efficiency"
+        }
+      }
+    },
+    {
+      "transform": [
+        {
+          "filter": "datum.model === 'Sports'"
+        }
+      ],
+      "mark": {
+        "type": "text",
+        "fontSize": 12,
+        "fontWeight": "bold",
+        "dy": 15,
+        "align": "center"
+      },
+      "encoding": {
+        "x": {
+          "field": "price",
+          "type": "quantitative"
+        },
+        "y": {
+          "field": "sales",
+          "type": "quantitative"
+        },
+        "text": {
+          "value": "Sports cars are least efficient"
+        }
+      }
+    },
+    {
+      "data": {
+        "values": [
+          {
+            "x": 40000,
+            "y": 1000,
+            "text": "Trend: Higher price = Lower efficiency"
+          }
+        ]
+      },
+      "mark": {
+        "type": "text",
+        "fontSize": 12,
+        "fontWeight": "bold",
+        "color": "red",
+        "angle": -15,
+        "align": "center"
+      },
+      "encoding": {
+        "x": {
+          "field": "x",
+          "type": "quantitative",
+          "scale": {
+            "domain": [
+              15000,
+              65000
+            ]
+          }
+        },
+        "y": {
+          "field": "y",
+          "type": "quantitative",
+          "scale": {
+            "domain": [
+              0,
+              2000
+            ]
+          }
+        },
+        "text": {
+          "field": "text",
+          "type": "nominal"
+        }
+      }
+    },
+    {
+      "data": {
+        "values": [
+          {
+            "x1": 20000,
+            "y1": 1500,
+            "x2": 60000,
+            "y2": 500
+          }
+        ]
+      },
+      "mark": {
+        "type": "rule",
+        "color": "red",
+        "strokeDash": [
+          5,
+          5
+        ],
+        "strokeWidth": 1.5
+      },
+      "encoding": {
+        "x": {
+          "field": "x1",
+          "type": "quantitative",
+          "scale": {
+            "domain": [
+              15000,
+              65000
+            ]
+          }
+        },
+        "y": {
+          "field": "y1",
+          "type": "quantitative",
+          "scale": {
+            "domain": [
+              0,
+              2000
+            ]
+          }
+        },
+        "x2": {
+          "field": "x2",
+          "type": "quantitative"
+        },
+        "y2": {
+          "field": "y2",
+          "type": "quantitative"
+        }
+      }
+    },
+    {
+      "transform": [
+        {
+          "filter": "datum.model === 'Hybrid'"
+        }
+      ],
+      "mark": {
+        "type": "rect",
+        "stroke": "green",
+        "strokeWidth": 2,
+        "strokeDash": [
+          3,
+          3
+        ],
+        "fill": null
+      },
+      "encoding": {
+        "x": {
+          "field": "price",
+          "type": "quantitative"
+        },
+        "y": {
+          "field": "sales",
+          "type": "quantitative"
+        },
+        "width": {
+          "value": 20
+        },
+        "height": {
+          "value": 200
+        }
+      }
+    },
+    {
+      "transform": [
+        {
+          "filter": "datum.model === 'Hybrid'"
+        }
+      ],
+      "mark": {
+        "type": "text",
+        "fontSize": 12,
+        "fontWeight": "bold",
+        "color": "green",
+        "dy": -35,
+        "dx": 35
+      },
+      "encoding": {
+        "x": {
+          "field": "price",
+          "type": "quantitative"
+        },
+        "y": {
+          "field": "sales",
+          "type": "quantitative"
+        },
+        "text": {
+          "value": "Hybrid"
+        }
+      }
+    },
+    {
+      "transform": [
+        {
+          "filter": "datum.model === 'Hybrid'"
+        }
+      ],
+      "mark": {
+        "type": "text",
+        "fontSize": 12,
+        "fontWeight": "bold",
+        "color": "green",
+        "dy": -20,
+        "dx": 35
+      },
+      "encoding": {
+        "x": {
+          "field": "price",
+          "type": "quantitative"
+        },
+        "y": {
+          "field": "sales",
+          "type": "quantitative"
+        },
+        "text": {
+          "value": "Best balance of price and efficiency"
+        }
+      }
+    }
+  ]
+}

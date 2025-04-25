@@ -99,3 +99,73 @@ scatter-chart:
         Code+Data+Annotation: all
         Data: 14
         Annotation: 67-167,214
+
+
+simple-barchart:
+    highchart.html:
+        Code+Data+Annotation: 31-245
+        Data: 32
+        Annotation: 49-52,107-228 
+    d3.html:
+        Code+Data+Annotation: 50-223
+        Data: 66
+        Annotation: 165-223
+    vega.json:
+        Code+Data+Annotation: all
+        Data: 10-20
+        Annotation: 21-69,127-241 
+    vega-lite.json:
+        Code+Data+Annotation: all
+        Data: 6
+        Annotation: 38-154 
+    vl-annotation.json:
+        Code+Data+Annotation: all
+        Data: 7
+        Annotation: 65-125 
+    d3-annotate.html:
+        Code+Data+Annotation: 52-256
+        Data: 68
+        Annotation: 168-256 
+    ggplot2.R:
+        Code+Data+Annotation: all
+        Data: 9
+        Annotation: 14-50,67-111 
+    ggplot2-annotate.R:
+        Code+Data+Annotation: all
+        Data: 8
+        Annotation: 13-22,39-71
+
+
+simple-scatterplot:
+    highchart.html:
+        Code+Data+Annotation: 31-252
+        Data: 32
+        Annotation: 49-52,114-234
+    d3.html:
+        Code+Data+Annotation: 50-222
+        Data: 66
+        Annotation: 165-222 
+    vega.json:
+        Code+Data+Annotation: all
+        Data: 10-20
+        Annotation: 21-69,126-240
+    vega-lite.json:
+        Code+Data+Annotation: all
+        Data: 6
+        Annotation: 40-155 
+    vl-annotation.json:
+        Code+Data+Annotation: all
+        Data: 7
+        Annotation: 67-127
+    d3-annotate.html:
+        Code+Data+Annotation: 52-254
+        Data: 68
+        Annotation: 167-254 
+    ggplot2.R:
+        Code+Data+Annotation: all
+        Data: 9
+        Annotation: 14-50,67-111
+    ggplot2-annotate.R:
+        Code+Data+Annotation: all
+        Data: 8
+        Annotation: 13-22,39-71 

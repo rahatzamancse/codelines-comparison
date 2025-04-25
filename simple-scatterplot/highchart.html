@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Price vs Fuel Efficiency - Highcharts Scatterplot</title>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/modules/annotations.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <script src="https://code.highcharts.com/modules/export-data.js"></script>
+  <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+  <style>
+    .chart-container {
+      width: 800px;
+      height: 500px;
+      margin: 0 auto;
+    }
+
+    .title {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2 class="title">Car Price vs Fuel Efficiency (Annotated)</h2>
+  <div id="container" class="chart-container"></div>
+
+  <script>
+    // Load data and create chart
+    fetch('data/input.json')
+      .then(response => response.json())
+      .then(data => {
+        // Prepare data series by car model
+        const models = [...new Set(data.map(car => car.model))];
+        const seriesData = models.map(model => {
+          return {
+            name: model,
+            data: data.filter(car => car.model === model).map(car => ({
+              x: car.price,
+              y: car.mpg,
+              sales: car.sales,
+              model: car.model
+            }))
+          };
+        });
+
+        // Find specific car models for annotations
+        const electricCar = data.find(car => car.model === 'Electric');
+        const sportsCar = data.find(car => car.model === 'Sports');
+        const hybridCar = data.find(car => car.model === 'Hybrid');
+
+        // Create the chart
+        Highcharts.chart('container', {
+          chart: {
+            type: 'scatter',
+            zoomType: 'xy'
+          },
+          title: {
+            text: 'Car Price vs Fuel Efficiency'
+          },
+          subtitle: {
+            text: 'Source: Car Sales Data'
+          },
+          xAxis: {
+            title: {
+              text: 'Price ($)'
+            },
+            min: 15000,
+            max: 65000,
+            labels: {
+              formatter: function () {
+                return '$' + this.value.toLocaleString();
+              }
+            }
+          },
+          yAxis: {
+            title: {
+              text: 'Fuel Efficiency (MPG)'
+            },
+            min: 10,
+            max: 140
+          },
+          legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle'
+          },
+          plotOptions: {
+            scatter: {
+              marker: {
+                radius: 5,
+                states: {
+                  hover: {
+                    enabled: true,
+                    lineColor: 'rgb(100,100,100)'
+                  }
+                }
+              },
+              states: {
+                hover: {
+                  marker: {
+                    enabled: false
+                  }
+                }
+              },
+              tooltip: {
+                headerFormat: '<b>{series.name}</b><br>',
+                pointFormat: '${point.x:,.0f}, {point.y} MPG<br>Sales: {point.sales}'
+              }
+            }
+          },
+          annotations: [{
+            // Annotation 1: Electric car
+            labels: [{
+              point: {
+                x: electricCar.price,
+                y: electricCar.mpg,
+                xAxis: 0,
+                yAxis: 0
+              },
+              text: 'Electric cars have highest efficiency',
+              y: -30,
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              borderColor: 'black',
+              borderWidth: 1,
+              borderRadius: 5,
+              padding: 5,
+              style: {
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }
+            }]
+          }, {
+            // Annotation 2: Sports car
+            labels: [{
+              point: {
+                x: sportsCar.price,
+                y: sportsCar.mpg,
+                xAxis: 0,
+                yAxis: 0
+              },
+              text: 'Sports cars are least efficient',
+              y: 30,
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              borderColor: 'black',
+              borderWidth: 1,
+              borderRadius: 5,
+              padding: 5,
+              style: {
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }
+            }]
+          }, {
+            // Annotation 3 & 4: Trend line with description
+            labels: [{
+              point: {
+                x: 40000,
+                y: 30,
+                xAxis: 0,
+                yAxis: 0
+              },
+              text: 'Trend: Higher price = Lower efficiency',
+              y: -30,
+              x: 40,
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              borderColor: 'red',
+              borderWidth: 1,
+              borderRadius: 5,
+              padding: 5,
+              style: {
+                fontSize: '12px',
+                fontWeight: 'bold',
+                color: 'red'
+              }
+            }],
+            shapes: [{
+              type: 'path',
+              points: [{
+                x: 20000,
+                y: 38,
+                xAxis: 0,
+                yAxis: 0
+              }, {
+                x: 60000,
+                y: 21,
+                xAxis: 0,
+                yAxis: 0
+              }],
+              markerEnd: 'arrow',
+              stroke: 'red',
+              strokeWidth: 2,
+              dashStyle: 'Dash'
+            }]
+          }, {
+            // Annotation 5: Highlighting hybrid model
+            labels: [{
+              point: {
+                x: hybridCar.price,
+                y: hybridCar.mpg,
+                xAxis: 0,
+                yAxis: 0
+              },
+              text: 'Hybrid<br>Best balance of price and efficiency',
+              y: -40,
+              x: 40,
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              borderColor: 'green',
+              borderWidth: 1,
+              borderRadius: 5,
+              padding: 5,
+              style: {
+                fontSize: '12px',
+                fontWeight: 'bold',
+                color: 'green'
+              }
+            }],
+            shapes: [{
+              type: 'circle',
+              point: {
+                x: hybridCar.price,
+                y: hybridCar.mpg,
+                xAxis: 0,
+                yAxis: 0
+              },
+              r: 15,
+              fill: 'transparent',
+              stroke: 'green',
+              strokeWidth: 2,
+              dashStyle: 'Dot'
+            }]
+          }],
+          series: seriesData,
+          responsive: {
+            rules: [{
+              condition: {
+                maxWidth: 500
+              },
+              chartOptions: {
+                legend: {
+                  layout: 'horizontal',
+                  align: 'center',
+                  verticalAlign: 'bottom'
+                }
+              }
+            }]
+          }
+        });
+      })
+      .catch(error => console.error('Error loading data:', error));
+  </script>
+</body>
+
+</html>

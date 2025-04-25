@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Price vs Sales - Annotated D3 Barchart</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    .tooltip {
+      position: absolute;
+      background-color: rgba(255, 255, 255, 0.9);
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .axis-label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .annotation-note-title {
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    .annotation-note-content {
+      font-size: 11px;
+    }
+
+    .annotation-connector {
+      stroke-width: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="title">Car Price vs Sales (Annotated)</div>
+  <svg id="barchart" width="800" height="500"></svg>
+
+  <script>
+    // Set up dimensions and margins
+    const margin = { top: 30, right: 120, bottom: 60, left: 70 };
+    const width = 800 - margin.left - margin.right;
+    const height = 500 - margin.top - margin.bottom;
+
+    // Create SVG
+    const svg = d3.select("#barchart")
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Create tooltip
+    const tooltip = d3.select("body")
+      .append("div")
+      .attr("class", "tooltip");
+
+    // Load data
+    d3.json("data/input.json").then(data => {
+      // Set up scales
+      const xScale = d3.scaleLinear()
+        .domain([15000, 65000])
+        .range([0, width]);
+
+      const yScale = d3.scaleLinear()
+        .domain([0, 2000])
+        .range([height, 0]);
+
+      const colorScale = d3.scaleOrdinal()
+        .domain(data.map(d => d.model))
+        .range(d3.schemeCategory10);
+
+      // Add X axis
+      svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(xScale).tickFormat(d => `$${d / 1000}k`));
+
+      // Add Y axis
+      svg.append("g")
+        .call(d3.axisLeft(yScale));
+
+      // Add X axis label
+      svg.append("text")
+        .attr("class", "axis-label")
+        .attr("x", width / 2)
+        .attr("y", height + 40)
+        .style("text-anchor", "middle")
+        .text("Price ($)");
+
+      // Add Y axis label
+      svg.append("text")
+        .attr("class", "axis-label")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -50)
+        .style("text-anchor", "middle")
+        .text("Sales (units)");
+
+      // Add bars
+      svg.selectAll("rect.bar")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", d => xScale(d.price) - 10)
+        .attr("y", d => yScale(d.sales))
+        .attr("width", 20)
+        .attr("height", d => height - yScale(d.sales))
+        .style("fill", d => colorScale(d.model))
+        .style("opacity", 0.7)
+        .on("mouseover", function (event, d) {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .style("opacity", 1);
+
+          tooltip
+            .style("opacity", 1)
+            .html(`
+              <strong>${d.model}</strong><br>
+              Price: $${d.price.toLocaleString()}<br>
+              MPG: ${d.mpg}<br>
+              Sales: ${d.sales.toLocaleString()}
+            `)
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 20) + "px");
+        })
+        .on("mouseout", function () {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .style("opacity", 0.7);
+
+          tooltip.style("opacity", 0);
+        });
+
+      // Add legend
+      const legend = svg.selectAll(".legend")
+        .data(colorScale.domain())
+        .enter()
+        .append("g")
+        .attr("class", "legend")
+        .attr("transform", (d, i) => `translate(0,${i * 20})`);
+
+      legend.append("rect")
+        .attr("x", width + 20)
+        .attr("y", 4)
+        .attr("width", 12)
+        .attr("height", 12)
+        .style("fill", colorScale);
+
+      legend.append("text")
+        .attr("x", width + 35)
+        .attr("y", 10)
+        .attr("dy", ".35em")
+        .style("text-anchor", "start")
+        .text(d => d);
+
+      // Find specific car models for annotations
+      const electricCar = data.find(d => d.model === 'Electric');
+      const sportsCar = data.find(d => d.model === 'Sports');
+      const hybridCar = data.find(d => d.model === 'Hybrid');
+
+      // Add annotations using d3-annotation
+      const annotations = [
+        // Annotation 1: Electric car
+        {
+          type: d3.annotationLabel,
+          note: {
+            title: "Electric cars have highest efficiency",
+            align: "middle"
+          },
+          x: xScale(electricCar.price),
+          y: yScale(electricCar.sales),
+          dy: -30,
+          dx: 0,
+          color: "black"
+        },
+
+        // Annotation 2: Sports car
+        {
+          type: d3.annotationLabel,
+          note: {
+            title: "Sports cars are least efficient",
+            align: "middle"
+          },
+          x: xScale(sportsCar.price),
+          y: yScale(sportsCar.sales),
+          dy: 30,
+          dx: 0,
+          color: "black"
+        },
+
+        // Annotation 3 & 4: Trend line with description
+        {
+          type: d3.annotationCalloutElbow,
+          note: {
+            title: "Trend: Higher price = Lower efficiency",
+            align: "middle"
+          },
+          x: xScale(40000),
+          y: yScale(1000),
+          dy: -30,
+          dx: 40,
+          color: "red",
+          connector: {
+            end: "arrow",
+            type: "line",
+            endScale: 2
+          },
+          subject: {
+            type: "line",
+            points: [
+              [xScale(20000), yScale(1500)],
+              [xScale(60000), yScale(500)]
+            ]
+          }
+        },
+
+        // Annotation 5: Highlighting hybrid model
+        {
+          type: d3.annotationCalloutRect,
+          note: {
+            title: "Hybrid",
+            label: "Best balance of price and efficiency",
+            align: "middle"
+          },
+          x: xScale(hybridCar.price),
+          y: yScale(hybridCar.sales),
+          dy: -40,
+          dx: 40,
+          color: "green",
+          subject: {
+            width: 24,
+            height: height - yScale(hybridCar.sales)
+          }
+        }
+      ];
+
+      // Add the annotation group
+      const makeAnnotations = d3.annotation()
+        .annotations(annotations);
+
+      svg.append("g")
+        .attr("class", "annotation-group")
+        .call(makeAnnotations);
+    });
+  </script>
+</body>
+
+</html>

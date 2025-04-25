@@ -1,0 +1,439 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "A scatterplot showing car price vs fuel efficiency with annotations.",
+  "width": 600,
+  "height": 400,
+  "padding": 5,
+  "background": "white",
+  "data": [
+    {
+      "name": "source",
+      "url": "data/input.json",
+      "format": {
+        "type": "json"
+      },
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "isValid(datum.price) && isFinite(+datum.price) && isValid(datum.mpg) && isFinite(+datum.mpg)"
+        }
+      ]
+    },
+    {
+      "name": "electric_data",
+      "source": "source",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.model === 'Electric'"
+        }
+      ]
+    },
+    {
+      "name": "sports_data",
+      "source": "source",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.model === 'Sports'"
+        }
+      ]
+    },
+    {
+      "name": "hybrid_data",
+      "source": "source",
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.model === 'Hybrid'"
+        }
+      ]
+    },
+    {
+      "name": "trend_line",
+      "values": [
+        {
+          "model": "start"
+        },
+        {
+          "model": "end"
+        }
+      ],
+      "transform": [
+        {
+          "type": "formula",
+          "expr": "datum.model === 'start' ? 20000 : 60000",
+          "as": "x"
+        },
+        {
+          "type": "formula",
+          "expr": "datum.model === 'start' ? 38 : 21",
+          "as": "y"
+        }
+      ]
+    }
+  ],
+  "scales": [
+    {
+      "name": "x",
+      "type": "linear",
+      "range": "width",
+      "domain": [
+        15000,
+        65000
+      ],
+      "nice": true
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "range": "height",
+      "domain": [
+        10,
+        140
+      ],
+      "nice": true
+    },
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": {
+        "data": "source",
+        "field": "model"
+      },
+      "range": {
+        "scheme": "category10"
+      }
+    }
+  ],
+  "axes": [
+    {
+      "orient": "bottom",
+      "scale": "x",
+      "title": "Price ($)",
+      "format": "$,d",
+      "grid": true
+    },
+    {
+      "orient": "left",
+      "scale": "y",
+      "title": "Fuel Efficiency (MPG)",
+      "grid": true
+    }
+  ],
+  "marks": [
+    {
+      "type": "symbol",
+      "from": {
+        "data": "source"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "price"
+          },
+          "y": {
+            "scale": "y",
+            "field": "mpg"
+          },
+          "fill": {
+            "scale": "color",
+            "field": "model"
+          },
+          "fillOpacity": {
+            "value": 0.7
+          },
+          "size": {
+            "value": 100
+          },
+          "tooltip": {
+            "signal": "{title: datum.model, 'Price': '$ ' + datum.price, 'MPG': datum.mpg, 'Sales': datum.sales}"
+          }
+        }
+      }
+    },
+    {
+      "type": "rule",
+      "from": {
+        "data": "trend_line"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "x"
+          },
+          "y": {
+            "scale": "y",
+            "field": "y"
+          },
+          "x2": {
+            "scale": "x",
+            "field": "x",
+            "offset": {
+              "signal": "datum.model === 'start' ? (scale('x', 60000) - scale('x', 20000)) : 0"
+            }
+          },
+          "y2": {
+            "scale": "y",
+            "field": "y",
+            "offset": {
+              "signal": "datum.model === 'start' ? (scale('y', 21) - scale('y', 38)) : 0"
+            }
+          },
+          "stroke": {
+            "value": "red"
+          },
+          "strokeWidth": {
+            "value": 1.5
+          },
+          "strokeDash": {
+            "value": [
+              5,
+              5
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {
+        "data": "electric_data"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "price"
+          },
+          "y": {
+            "scale": "y",
+            "field": "mpg"
+          },
+          "text": {
+            "value": "Electric cars have highest efficiency"
+          },
+          "align": {
+            "value": "center"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "dy": {
+            "value": -15
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {
+        "data": "sports_data"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "price"
+          },
+          "y": {
+            "scale": "y",
+            "field": "mpg"
+          },
+          "text": {
+            "value": "Sports cars are least efficient"
+          },
+          "align": {
+            "value": "center"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "dy": {
+            "value": 15
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "value": 40000
+          },
+          "y": {
+            "scale": "y",
+            "value": 30
+          },
+          "text": {
+            "value": "Trend: Higher price = Lower efficiency"
+          },
+          "align": {
+            "value": "center"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "red"
+          },
+          "angle": {
+            "value": -15
+          }
+        }
+      }
+    },
+    {
+      "type": "symbol",
+      "from": {
+        "data": "hybrid_data"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "price"
+          },
+          "y": {
+            "scale": "y",
+            "field": "mpg"
+          },
+          "shape": {
+            "value": "circle"
+          },
+          "size": {
+            "value": 700
+          },
+          "fill": {
+            "value": "transparent"
+          },
+          "stroke": {
+            "value": "green"
+          },
+          "strokeWidth": {
+            "value": 2
+          },
+          "strokeDash": {
+            "value": [
+              3,
+              3
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {
+        "data": "hybrid_data"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "price"
+          },
+          "y": {
+            "scale": "y",
+            "field": "mpg"
+          },
+          "text": {
+            "value": "Hybrid"
+          },
+          "align": {
+            "value": "left"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "green"
+          },
+          "dx": {
+            "value": 35
+          },
+          "dy": {
+            "value": -35
+          }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {
+        "data": "hybrid_data"
+      },
+      "encode": {
+        "enter": {
+          "x": {
+            "scale": "x",
+            "field": "price"
+          },
+          "y": {
+            "scale": "y",
+            "field": "mpg"
+          },
+          "text": {
+            "value": "Best balance of price and efficiency"
+          },
+          "align": {
+            "value": "left"
+          },
+          "baseline": {
+            "value": "middle"
+          },
+          "fontSize": {
+            "value": 12
+          },
+          "fontWeight": {
+            "value": "bold"
+          },
+          "fill": {
+            "value": "green"
+          },
+          "dx": {
+            "value": 35
+          },
+          "dy": {
+            "value": -20
+          }
+        }
+      }
+    }
+  ],
+  "legends": [
+    {
+      "fill": "color",
+      "title": "Car Model",
+      "orient": "right"
+    }
+  ]
+}

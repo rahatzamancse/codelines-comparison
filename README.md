@@ -54,6 +54,85 @@ options:
                         Specify a file to debug (only applies when --debug is enabled)
 ```
 
+## Folder Comparison Tool
+
+The project also includes a specialized folder comparison tool that focuses on meaningful code changes between different implementations.
+
+```text
+usage: compare_folders.py [-h] [--section SECTION] [--debug] [folder1] [folder2]
+
+Compare files between two chart implementation folders, focusing on meaningful changes.
+
+positional arguments:
+  folder1            First folder to compare (default: simple-barchart)
+  folder2            Second folder to compare (default: simple-scatterplot)
+
+options:
+  -h, --help         show this help message and exit
+  --section SECTION  Section to compare (e.g., "Annotation", "Data", "Code+Data+Annotation")
+  --debug            Enable detailed debug output
+```
+
+### Folder Comparison Features
+
+- Compares corresponding files between two folders
+- Ignores comments and empty lines for meaningful comparison
+- Can focus on specific sections defined in stats.txt (e.g., just Annotation lines)
+- Shows the number of meaningful added and removed lines
+- Handles various file formats with appropriate comment detection
+
+### Comparison Tool Usage Examples
+
+Basic comparison between two folders:
+```bash
+python compare_folders.py folder1 folder2
+```
+
+Compare only the annotation sections:
+```bash
+python compare_folders.py folder1 folder2 --section Annotation
+```
+
+Use default folders with section filtering:
+```bash
+python compare_folders.py --section Data
+```
+
+Enable debug output for detailed information:
+```bash
+python compare_folders.py folder1 folder2 --debug
+```
+
+### Comparison Output Format
+
+The tool produces output in the following format:
+```
+filename.ext: +XX | -YY || MMM
+        │      │     │     │
+        │      │     │     └─ Total meaningful lines in original file (excludes comments & empty lines)
+        │      │     └─ Removed meaningful lines
+        │      └─ Added meaningful lines
+        └─ Filename being compared
+```
+
+When a section is specified:
+```
+filename.ext: +XX | -YY || SSS / MMM
+        │      │     │     │     │
+        │      │     │     │     └─ Total meaningful lines in original file
+        │      │     │     └─ Meaningful lines in the specified section
+        │      │     └─ Removed meaningful lines
+        │      └─ Added meaningful lines
+        └─ Filename being compared
+```
+
+Where:
+- `filename.ext` is the name of the file being compared
+- `+XX` is the number of meaningful added lines
+- `-YY` is the number of meaningful removed lines
+- `SSS` is the number of meaningful lines in the specified section (only shown when a section is specified)
+- `MMM` is the total number of meaningful lines in the original file (ignoring comments and empty lines)
+
 ## Usage Examples
 
 ### Basic Usage
@@ -154,6 +233,39 @@ scatter-chart:
 +--------------------+--------------+------------------------+--------+--------+-------------+-------------------+
 | ggplot2-annotate.R |           77 |                    179 |      1 |    101 |         102 |               178 |
 +--------------------+--------------+------------------------+--------+--------+-------------+-------------------+
+```
+
+## Example Folder Comparison Output
+
+When comparing folders with the `compare_folders.py` tool, the output will look like:
+
+```
+Comparing only the 'Annotation' section in each file:
+
+File                | Changes | Section | Total
+                      Added | Removed  Lines   Lines
+-------------------+-------+---------+-------+------
+d3-annotate.html  : +  8 | -  9 || 80 / 172
+d3.html           : + 11 | - 12 || 70 / 162
+ggplot2-annotate.R: +  9 | -  9 || 53 / 78
+ggplot2.R         : + 20 | - 20 || 98 / 125
+highchart.html    : +  9 | - 10 || 50 / 93
+vega-lite.json    : + 11 | - 12 || 236 / 308
+vega.json         : + 11 | - 11 || 354 / 584
+vl-annotation.json: +  0 | -  0 || 82 / 150
+```
+
+And without section specified:
+
+```
+File                | Changes | Total
+                      Added | Removed  Lines
+-------------------+-------+---------+------
+d3-annotate.html  : +  8 | -  9 || 172
+d3.html           : + 11 | - 12 || 162
+ggplot2-annotate.R: +  9 | -  9 || 78
+ggplot2.R         : + 20 | - 20 || 125
+```
 
 ## Comment Detection
 
@@ -171,6 +283,11 @@ The tabular output helps compare:
 - Implementation efficiency
 - Custom calculations using the `--col_process` feature
 
+The folder comparison tool helps analyze:
+- Meaningful differences between similar implementations
+- Section-specific changes (like annotation modifications)
+- Real code changes excluding comments and whitespace
+
 ## Implementation Details
 
 - Written in Python 3
@@ -178,6 +295,7 @@ The tabular output helps compare:
 - Handles multi-line and single-line comments
 - Supports custom column calculations with simple expressions
 - Excludes empty lines from counts
+- Supports section-specific analysis
 
 ## Dependencies
 
