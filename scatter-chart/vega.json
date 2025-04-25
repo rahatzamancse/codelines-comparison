@@ -1,0 +1,410 @@
+{
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "A scatterplot showing body mass and flipper lengths of penguins.",
+    "background": "white",
+    "padding": 5,
+    "width": 200,
+    "height": 200,
+    "style": "cell",
+    "data": [
+        {
+            "name": "source_0",
+            "url": "data/penguins.json",
+            "format": {
+                "type": "json"
+            },
+            "transform": [
+                {
+                    "type": "filter",
+                    "expr": "isValid(datum[\"Flipper Length (mm)\"]) && isFinite(+datum[\"Flipper Length (mm)\"]) && isValid(datum[\"Body Mass (g)\"]) && isFinite(+datum[\"Body Mass (g)\"])"
+                }
+            ]
+        },
+        {
+            "name": "red_points",
+            "source": "source_0",
+            "transform": [
+                {
+                    "type": "filter",
+                    "expr": "datum['Species'] == 'Adelie'"
+                }
+            ]
+        },
+        {
+            "name": "ellipse_stats",
+            "source": "red_points",
+            "transform": [
+                {
+                    "type": "aggregate",
+                    "fields": [
+                        "Flipper Length (mm)",
+                        "Body Mass (g)",
+                        "Flipper Length (mm)",
+                        "Body Mass (g)"
+                    ],
+                    "ops": [
+                        "mean",
+                        "mean",
+                        "stdev",
+                        "stdev"
+                    ],
+                    "as": [
+                        "mean_x",
+                        "mean_y",
+                        "std_x",
+                        "std_y"
+                    ]
+                }
+            ]
+        }
+    ],
+    "marks": [
+        {
+            "name": "marks",
+            "type": "symbol",
+            "style": [
+                "point"
+            ],
+            "from": {
+                "data": "source_0"
+            },
+            "encode": {
+                "update": {
+                    "opacity": {
+                        "value": 0.7
+                    },
+                    "fill": {
+                        "value": "transparent"
+                    },
+                    "stroke": {
+                        "scale": "color",
+                        "field": "Species"
+                    },
+                    "ariaRoleDescription": {
+                        "value": "point"
+                    },
+                    "description": {
+                        "signal": "\"Flipper Length (mm): \" + (format(datum[\"Flipper Length (mm)\"], \"\")) + \"; Body Mass (g): \" + (format(datum[\"Body Mass (g)\"], \"\")) + \"; Species: \" + (isValid(datum[\"Species\"]) ? datum[\"Species\"] : \"\"+datum[\"Species\"])"
+                    },
+                    "x": {
+                        "scale": "x",
+                        "field": "Flipper Length (mm)"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "field": "Body Mass (g)"
+                    },
+                    "shape": {
+                        "scale": "shape",
+                        "field": "Species"
+                    }
+                }
+            }
+        },
+        {
+            "type": "symbol",
+            "from": {
+                "data": "ellipse_stats"
+            },
+            "encode": {
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "field": "mean_x"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "field": "mean_y"
+                    },
+                    "size": {
+                        "signal": "pow(scale('x', datum.std_x * 2) - scale('x', 0), 2) + pow(scale('y', datum.std_y * 2) - scale('y', 0), 2)"
+                    },
+                    "shape": {
+                        "value": "circle"
+                    },
+                    "fill": {
+                        "value": "red"
+                    },
+                    "fillOpacity": {
+                        "value": 0.2
+                    },
+                    "stroke": {
+                        "value": "red"
+                    },
+                    "strokeWidth": {
+                        "value": 1
+                    }
+                }
+            }
+        },
+        {
+            "type": "text",
+            "from": {
+                "data": "ellipse_stats"
+            },
+            "encode": {
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "field": "mean_x"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "field": "mean_y",
+                        "offset": 30
+                    },
+                    "text": {
+                        "value": "Adelie Cluster"
+                    },
+                    "dx": {
+                        "value": 30
+                    },
+                    "dy": {
+                        "value": 20
+                    },
+                    "align": {
+                        "value": "center"
+                    },
+                    "baseline": {
+                        "value": "top"
+                    },
+                    "fill": {
+                        "value": "red"
+                    },
+                    "fontSize": {
+                        "value": 12
+                    },
+                    "fontWeight": {
+                        "value": "bold"
+                    }
+                }
+            }
+        },
+        {
+            "type": "text",
+            "encode": {
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "value": 180
+                    },
+                    "y": {
+                        "scale": "y",
+                        "value": 6000
+                    },
+                    "text": {
+                        "value": "Outlier"
+                    },
+                    "align": {
+                        "value": "left"
+                    },
+                    "baseline": {
+                        "value": "middle"
+                    },
+                    "fill": {
+                        "value": "blue"
+                    },
+                    "fontSize": {
+                        "value": 12
+                    },
+                    "dx": {
+                        "value": 20
+                    },
+                    "dy": {
+                        "value": 20
+                    }
+                }
+            }
+        },
+        {
+            "type": "text",
+            "encode": {
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "value": 250
+                    },
+                    "y": {
+                        "scale": "y",
+                        "value": 5000
+                    },
+                    "text": {
+                        "value": "Gentoo"
+                    },
+                    "align": {
+                        "value": "left"
+                    },
+                    "baseline": {
+                        "value": "middle"
+                    },
+                    "fill": {
+                        "value": "blue"
+                    },
+                    "fontSize": {
+                        "value": 12
+                    }
+                }
+            }
+        },
+        {
+            "type": "rule",
+            "encode": {
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "value": 180
+                    },
+                    "x2": {
+                        "scale": "x",
+                        "value": 185
+                    },
+                    "y": {
+                        "scale": "y",
+                        "value": 6000
+                    },
+                    "y2": {
+                        "scale": "y",
+                        "value": 5900
+                    },
+                    "stroke": {
+                        "value": "blue"
+                    },
+                    "strokeWidth": {
+                        "value": 1
+                    }
+                }
+            }
+        }
+    ],
+    "scales": [
+        {
+            "name": "x",
+            "type": "linear",
+            "domain": {
+                "data": "source_0",
+                "field": "Flipper Length (mm)"
+            },
+            "range": [
+                0,
+                {
+                    "signal": "width"
+                }
+            ],
+            "zero": false,
+            "nice": true
+        },
+        {
+            "name": "y",
+            "type": "linear",
+            "domain": {
+                "data": "source_0",
+                "field": "Body Mass (g)"
+            },
+            "range": [
+                {
+                    "signal": "height"
+                },
+                0
+            ],
+            "zero": false,
+            "nice": true
+        },
+        {
+            "name": "color",
+            "type": "ordinal",
+            "domain": {
+                "data": "source_0",
+                "field": "Species",
+                "sort": true
+            },
+            "range": "category"
+        },
+        {
+            "name": "shape",
+            "type": "ordinal",
+            "domain": {
+                "data": "source_0",
+                "field": "Species",
+                "sort": true
+            },
+            "range": "symbol"
+        }
+    ],
+    "axes": [
+        {
+            "scale": "x",
+            "orient": "bottom",
+            "gridScale": "y",
+            "grid": true,
+            "tickCount": {
+                "signal": "ceil(width/40)"
+            },
+            "domain": false,
+            "labels": false,
+            "aria": false,
+            "maxExtent": 0,
+            "minExtent": 0,
+            "ticks": false,
+            "zindex": 0
+        },
+        {
+            "scale": "y",
+            "orient": "left",
+            "gridScale": "x",
+            "grid": true,
+            "tickCount": {
+                "signal": "ceil(height/40)"
+            },
+            "domain": false,
+            "labels": false,
+            "aria": false,
+            "maxExtent": 0,
+            "minExtent": 0,
+            "ticks": false,
+            "zindex": 0
+        },
+        {
+            "scale": "x",
+            "orient": "bottom",
+            "grid": false,
+            "title": "Flipper Length (mm)",
+            "labelFlush": true,
+            "labelOverlap": true,
+            "tickCount": {
+                "signal": "ceil(width/40)"
+            },
+            "zindex": 0
+        },
+        {
+            "scale": "y",
+            "orient": "left",
+            "grid": false,
+            "title": "Body Mass (g)",
+            "labelOverlap": true,
+            "tickCount": {
+                "signal": "ceil(height/40)"
+            },
+            "zindex": 0
+        }
+    ],
+    "legends": [
+        {
+            "stroke": "color",
+            "symbolType": "circle",
+            "title": "Species",
+            "encode": {
+                "symbols": {
+                    "update": {
+                        "fill": {
+                            "value": "transparent"
+                        },
+                        "opacity": {
+                            "value": 0.7
+                        }
+                    }
+                }
+            },
+            "shape": "shape"
+        }
+    ]
+}

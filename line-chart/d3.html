@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Stock Prices Line Chart</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .line {
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .dot {
+            stroke: white;
+            stroke-width: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <svg id="chart"></svg>
+    <script>
+        // Set the dimensions and margins of the graph
+        const margin = { top: 40, right: 80, bottom: 60, left: 60 };
+        const width = 800 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+
+        // Create the SVG container
+        const svg = d3.select("#chart")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Load and process the data
+        d3.csv("data/stocks.csv").then(function (data) {
+            // Parse the date using the new format (MMM D YYYY)
+            const parseDate = d3.timeParse("%b %d %Y");
+            data.forEach(d => {
+                d.date = parseDate(d.date);
+                d.price = +d.price;
+            });
+
+            // Group data by symbol and year, calculating mean price
+            const yearFormat = d3.timeFormat("%Y");
+            const nestedData = Array.from(d3.group(data, d => d.symbol), ([symbol, values]) => {
+                // Group by year and calculate mean price
+                const yearlyData = Array.from(
+                    d3.group(values, d => yearFormat(d.date)), ([year, yearValues]) => ({
+                        symbol: symbol,
+                        date: new Date(year),
+                        price: d3.mean(yearValues, d => d.price)
+                    }));
+                return [symbol, yearlyData];
+            });
+
+            // Convert back to Map for consistency with rest of code
+            const aggregatedData = new Map(nestedData);
+
+            // Update scales to use aggregated data
+            const allAggregatedValues = Array.from(aggregatedData.values()).flat();
+
+            const xScale = d3.scaleTime()
+                .domain(d3.extent(allAggregatedValues, d => d.date))
+                .range([0, width]);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(allAggregatedValues, d => d.price)])
+                .range([height, 0]);
+
+            const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+            // Add X axis
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale)
+                    .tickFormat(d3.timeFormat("%Y")));
+
+            // Add Y axis
+            svg.append("g")
+                .call(d3.axisLeft(yScale));
+
+            // Create line generator
+            const line = d3.line()
+                .x(d => xScale(d.date))
+                .y(d => yScale(d.price));
+
+            // Add lines
+            aggregatedData.forEach((values, symbol) => {
+                // Add the line
+                svg.append("path")
+                    .datum(values)
+                    .attr("class", "line")
+                    .attr("d", line)
+                    .style("stroke", colorScale(symbol));
+
+                // Add the points
+                svg.selectAll(`dot-${symbol}`)
+                    .data(values)
+                    .enter()
+                    .append("circle")
+                    .attr("class", "dot")
+                    .attr("cx", d => xScale(d.date))
+                    .attr("cy", d => yScale(d.price))
+                    .attr("r", 4)
+                    .style("fill", colorScale(symbol));
+            });
+
+            // Add legend
+            const legend = svg.append("g")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", 10)
+                .attr("text-anchor", "start")
+                .selectAll("g")
+                .data(aggregatedData.keys())
+                .enter()
+                .append("g")
+                .attr("transform", (d, i) => `translate(${width + 10},${i * 20})`);
+
+            legend.append("rect")
+                .attr("x", 0)
+                .attr("width", 19)
+                .attr("height", 19)
+                .attr("fill", colorScale);
+
+            legend.append("text")
+                .attr("x", 24)
+                .attr("y", 9.5)
+                .attr("dy", "0.32em")
+                .text(d => d);
+
+
+
+            // Annotations
+
+            // Calculate regression line
+            const allPoints = Array.from(aggregatedData.values()).flat();
+            const xValues = allPoints.map(d => d.date.getTime());
+            const yValues = allPoints.map(d => d.price);
+
+            // Simple linear regression
+            const n = xValues.length;
+            const xMean = xValues.reduce((a, b) => a + b) / n;
+            const yMean = yValues.reduce((a, b) => a + b) / n;
+
+            const slope = xValues.map((x, i) => (x - xMean) * (yValues[i] - yMean))
+                .reduce((a, b) => a + b) /
+                xValues.map(x => Math.pow(x - xMean, 2))
+                    .reduce((a, b) => a + b);
+            const intercept = yMean - slope * xMean;
+
+            // Create regression line points
+            const regressionLine = [
+                new Date(Math.min(...xValues)),
+                new Date(Math.max(...xValues))
+            ].map(x => ({
+                date: x,
+                price: slope * x.getTime() + intercept
+            }));
+
+            // Add regression line
+            const regressionPath = svg.append("path")
+                .datum(regressionLine)
+                .attr("class", "regression-line")
+                .attr("d", line)
+                .style("stroke", "black")
+                .style("stroke-width", 2)
+                .style("stroke-dasharray", "5,5");
+
+            // Add annotation text at the center point of the regression line
+            const pathLength = regressionPath.node().getTotalLength();
+            const centerPoint = regressionPath.node().getPointAtLength(pathLength / 2);
+
+            svg.append("text")
+                .attr("x", centerPoint.x)
+                .attr("y", centerPoint.y - 15) // Offset above the line
+                .attr("text-anchor", "middle")
+                .style("font-size", "14px")
+                .style("font-weight", "bold")
+                .text("Trend upward!");
+
+            // GOOG vs AAPL distance
+            // Find 2007 data points for AAPL and GOOG
+            const year2007 = new Date('2007-01-01');
+            const aaplPoint = Array.from(aggregatedData.get('AAPL')).find(d => d.date.getFullYear() === 2007);
+            const googPoint = Array.from(aggregatedData.get('GOOG')).find(d => d.date.getFullYear() === 2007);
+
+            if (aaplPoint && googPoint) {
+                // Draw vertical line between points
+                svg.append("line")
+                    .attr("x1", xScale(aaplPoint.date))
+                    .attr("y1", yScale(aaplPoint.price))
+                    .attr("x2", xScale(googPoint.date))
+                    .attr("y2", yScale(googPoint.price))
+                    .style("stroke", "gray")
+                    .style("stroke-width", 2)
+                    .style("stroke-dasharray", "5,5")
+                    .attr("marker-start", "url(#arrow)")
+                    .attr("marker-end", "url(#arrow)");
+
+                // Define arrow marker
+                svg.append("defs").append("marker")
+                    .attr("id", "arrow")
+                    .attr("viewBox", "0 -5 10 10")
+                    .attr("refX", 8)
+                    .attr("refY", 0)
+                    .attr("markerWidth", 6)
+                    .attr("markerHeight", 6)
+                    .attr("orient", "auto")
+                    .append("path")
+                    .attr("d", "M0,-5L10,0L0,5")
+                    .style("fill", "gray");
+
+                // Add annotation
+                const midY = (aaplPoint.price + googPoint.price) / 2;
+                svg.append("text")
+                    .attr("x", xScale(aaplPoint.date) + 10)
+                    .attr("y", yScale(midY))
+                    .attr("text-anchor", "start")
+                    .style("font-size", "12px")
+                    .text("Price gap in 2007");
+            }
+
+            // empty annotation
+            // Add empty annotation rectangle and text in top left
+            svg.append("rect")
+                .attr("x", 30)
+                .attr("y", 30)
+                .attr("width", 200)
+                .attr("height", 100)
+                .attr("fill", "none")
+                .attr("stroke", "gray")
+                .attr("stroke-width", 1)
+                .attr("stroke-dasharray", "3,3");
+
+            svg.append("text")
+                .attr("x", 70)
+                .attr("y", 20)
+                .attr("text-anchor", "middle")
+                .style("font-size", "12px")
+                .text("such empty!");
+
+            // text connector
+            // Get first GOOG point
+            const firstGoogPoint = data.find(d => d.symbol === 'GOOG');
+
+            // Add text first
+            const firstPointText = svg.append("text")
+                .attr("x", xScale(firstGoogPoint.date) + 55)
+                .attr("y", yScale(firstGoogPoint.price) - 35)
+                .attr("text-anchor", "start")
+                .style("font-size", "12px")
+                .text("First Point!");
+
+            // Get text bounding box for arrow endpoint
+            const textBox = firstPointText.node().getBBox();
+
+            // Add arrow from GOOG point to text
+            svg.append("line")
+                .attr("x1", xScale(firstGoogPoint.date))
+                .attr("y1", yScale(firstGoogPoint.price))
+                .attr("x2", textBox.x)  // Arrow ends at start of text
+                .attr("y2", textBox.y + textBox.height / 2)  // Arrow ends at vertical middle of text
+                .style("stroke", "gray")
+                .style("stroke-width", 2)
+                .attr("marker-end", "url(#arrow)");
+        });
+
+
+
+    </script>
+</body>
+
+</html>

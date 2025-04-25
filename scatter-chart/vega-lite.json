@@ -1,0 +1,178 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "description": "A scatterplot showing body mass and flipper lengths of penguins.",
+  "data": {
+    "url": "data/penguins.json"
+  },
+  "layer": [
+    {
+      "mark": {
+        "type": "point",
+        "size": 10
+      },
+      "encoding": {
+        "x": {
+          "field": "Flipper Length (mm)",
+          "type": "quantitative",
+          "scale": {
+            "zero": false
+          }
+        },
+        "y": {
+          "field": "Body Mass (g)",
+          "type": "quantitative",
+          "scale": {
+            "zero": false
+          }
+        },
+        "color": {
+          "field": "Species",
+          "type": "nominal"
+        }
+      }
+    },
+    {
+      "transform": [
+        {
+          "filter": "datum.Species === 'Gentoo'"
+        },
+        {
+          "calculate": "datum['Flipper Length (mm)']",
+          "as": "meanX"
+        },
+        {
+          "calculate": "datum['Body Mass (g)']",
+          "as": "meanY"
+        }
+      ],
+      "mark": {
+        "type": "rect",
+        "opacity": 0.2,
+        "stroke": "color",
+        "strokeDash": [
+          5,
+          5
+        ],
+        "strokeWidth": 2,
+        "cornerRadius": 100,
+        "xOffset": -20,
+        "yOffset": -15,
+        "width": 40,
+        "height": 30
+      },
+      "encoding": {
+        "x": {
+          "field": "Flipper Length (mm)",
+          "type": "quantitative",
+          "aggregate": "mean"
+        },
+        "y": {
+          "field": "Body Mass (g)",
+          "type": "quantitative",
+          "aggregate": "mean"
+        },
+        "color": {
+          "field": "Species",
+          "type": "nominal"
+        }
+      }
+    },
+    {
+      "transform": [
+        {
+          "filter": "datum.Species === 'Gentoo'"
+        }
+      ],
+      "mark": {
+        "type": "text",
+        "align": "center",
+        "baseline": "bottom",
+        "fontWeight": "bold",
+        "dy": -10,
+        "dx": 20
+      },
+      "encoding": {
+        "x": {
+          "field": "Flipper Length (mm)",
+          "type": "quantitative",
+          "aggregate": "mean"
+        },
+        "y": {
+          "field": "Body Mass (g)",
+          "type": "quantitative",
+          "aggregate": "mean"
+        },
+        "color": {
+          "field": "Species",
+          "type": "nominal"
+        },
+        "text": {
+          "value": "Gentoo Cluster"
+        }
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "left",
+        "baseline": "middle",
+        "fontWeight": "bold",
+        "color": "blue",
+        "dy": -10,
+        "dx": 20
+      },
+      "encoding": {
+        "x": {
+          "value": 197
+        },
+        "y": {
+          "value": 280
+        },
+        "text": {
+          "value": "Outlier!"
+        }
+      }
+    },
+    {
+      "mark": {
+        "type": "line",
+        "color": "blue",
+        "strokeWidth": 2
+      },
+      "encoding": {
+        "x": {
+          "datum": 185
+        },
+        "y": {
+          "datum": 4700
+        },
+        "x2": {
+          "datum": 190
+        },
+        "y2": {
+          "datum": 4800
+        }
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "align": "left",
+        "baseline": "middle",
+        "fontWeight": "bold",
+        "color": "blue"
+      },
+      "encoding": {
+        "x": {
+          "value": 330
+        },
+        "y": {
+          "value": 70
+        },
+        "text": {
+          "value": "G fro Green!"
+        }
+      }
+    }
+  ]
+}

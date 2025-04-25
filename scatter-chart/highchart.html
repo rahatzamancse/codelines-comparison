@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penguin Scatterplot - Highcharts</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/annotations.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #chart-container {
+            width: 700px;
+            height: 500px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Penguin Scatterplot</h2>
+    <div id="chart-container"></div>
+
+    <script>
+        // Load data
+        fetch('data/penguins.json')
+            .then(response => response.json())
+            .then(data => {
+                // Filter out null values
+                const filteredData = data.filter(d =>
+                    d["Flipper Length (mm)"] !== null &&
+                    d["Body Mass (g)"] !== null);
+
+                // Prepare series data by species
+                const species = [...new Set(filteredData.map(d => d.Species))];
+                const seriesData = species.map(s => {
+                    return {
+                        name: s,
+                        data: filteredData
+                            .filter(d => d.Species === s)
+                            .map(d => {
+                                return {
+                                    x: d["Flipper Length (mm)"],
+                                    y: d["Body Mass (g)"],
+                                    species: d.Species,
+                                    island: d.Island,
+                                    sex: d.Sex
+                                };
+                            })
+                    };
+                });
+
+                // Get data for Gentoo species for the highlight
+                const gentooData = filteredData.filter(d => d.Species === "Gentoo");
+                const gentooX = gentooData.map(d => d["Flipper Length (mm)"]);
+                const gentooY = gentooData.map(d => d["Body Mass (g)"]);
+
+                // Calculate min/max for rectangle
+                const xMin = Math.min(...gentooX);
+                const xMax = Math.max(...gentooX);
+                const yMin = Math.min(...gentooY);
+                const yMax = Math.max(...gentooY);
+
+                // Center point for label
+                const xCenter = (xMin + xMax) / 2;
+                const yCenter = yMax;
+
+                // Create chart
+                Highcharts.chart('chart-container', {
+                    chart: {
+                        type: 'scatter',
+                        zoomType: 'xy'
+                    },
+                    title: {
+                        text: 'Penguin Flipper Length vs Body Mass'
+                    },
+                    xAxis: {
+                        title: {
+                            text: 'Flipper Length (mm)'
+                        }
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Body Mass (g)'
+                        }
+                    },
+                    legend: {
+                        layout: 'vertical',
+                        align: 'right',
+                        verticalAlign: 'middle'
+                    },
+                    plotOptions: {
+                        scatter: {
+                            marker: {
+                                radius: 5,
+                                states: {
+                                    hover: {
+                                        enabled: true,
+                                        lineColor: 'rgb(100,100,100)'
+                                    }
+                                }
+                            },
+                            states: {
+                                hover: {
+                                    marker: {
+                                        enabled: false
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                headerFormat: '<b>{series.name}</b><br>',
+                                pointFormat: 'Flipper Length: {point.x} mm<br>Body Mass: {point.y} g<br>Island: {point.island}<br>Sex: {point.sex}'
+                            }
+                        }
+                    },
+                    series: seriesData,
+                    // Add annotations
+                    annotations: [
+                        {
+                            // Gentoo highlight rectangle
+                            shapes: [{
+                                type: 'rect',
+                                xAxis: 0,
+                                yAxis: 0,
+                                x: xMin,
+                                y: yMin,
+                                width: xMax - xMin,
+                                height: yMax - yMin,
+                                fill: 'rgba(70, 130, 180, 0.2)',
+                                stroke: 'rgba(70, 130, 180, 0.8)',
+                                strokeWidth: 2,
+                                dashStyle: 'shortdash'
+                            }],
+                            labels: [{
+                                point: {
+                                    x: xCenter,
+                                    y: yMax + 100,
+                                    xAxis: 0,
+                                    yAxis: 0
+                                },
+                                text: 'Gentoo Cluster',
+                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                borderColor: 'rgba(70, 130, 180, 0.8)',
+                                borderWidth: 1,
+                                borderRadius: 5,
+                                padding: 5,
+                                style: {
+                                    fontWeight: 'bold',
+                                    color: 'rgba(70, 130, 180, 1)'
+                                }
+                            }]
+                        },
+                        {
+                            // Outlier annotation
+                            labels: [{
+                                point: {
+                                    x: 185,
+                                    y: 4700,
+                                    xAxis: 0,
+                                    yAxis: 0
+                                },
+                                text: 'Outlier!',
+                                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                                borderColor: 'rgba(0, 0, 255, 0.8)',
+                                borderWidth: 1,
+                                borderRadius: 5,
+                                padding: 5,
+                                style: {
+                                    fontWeight: 'bold',
+                                    color: 'blue'
+                                }
+                            }],
+                            shapes: [{
+                                type: 'rect',
+                                xAxis: 0,
+                                yAxis: 0,
+                                x: 180,
+                                y: 4650,
+                                width: 10,
+                                height: 100,
+                                stroke: 'blue',
+                                strokeWidth: 2,
+                                fill: 'rgba(0, 0, 255, 0.1)'
+                            }]
+                        },
+                        {
+                            // Gentoo in legend text
+                            labels: [{
+                                point: {
+                                    x: 210,
+                                    y: 5000,
+                                    xAxis: 0,
+                                    yAxis: 0
+                                },
+                                text: 'G for Green',
+                                style: {
+                                    fontStyle: 'italic',
+                                    color: 'green',
+                                    fontSize: '10px'
+                                }
+                            }]
+                        }
+                    ]
+                });
+            })
+            .catch(error => {
+                console.error('Error loading data:', error);
+                document.getElementById('chart-container').innerHTML =
+                    '<p>Error loading data. Please check the console for details.</p>';
+            });
+    </script>
+</body>
+
+</html>

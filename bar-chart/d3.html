@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>D3 Grouped Bar Chart</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .bar {
+            opacity: 0.8;
+        }
+
+        .bar:hover {
+            opacity: 1;
+        }
+
+        .axis-label {
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chart"></div>
+    <script>
+        // Start of LOC Counting
+        // Data
+        const data = [
+            { "category": "A", "group": "x", "value": 0.1 },
+            { "category": "A", "group": "y", "value": 0.6 },
+            { "category": "A", "group": "z", "value": 0.9 },
+            { "category": "B", "group": "x", "value": 0.7 },
+            { "category": "B", "group": "y", "value": 0.2 },
+            { "category": "B", "group": "z", "value": 1.1 },
+            { "category": "C", "group": "x", "value": 0.6 },
+            { "category": "C", "group": "y", "value": 0.1 },
+            { "category": "C", "group": "z", "value": 0.2 }
+        ];
+
+        // Set dimensions and margins
+        const margin = { top: 20, right: 120, bottom: 50, left: 60 };
+        const width = 600 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+
+        // Create SVG
+        const svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Get unique categories and groups
+        const categories = [...new Set(data.map(d => d.category))];
+        const groups = [...new Set(data.map(d => d.group))];
+
+        // Set up scales
+        const x0 = d3.scaleBand()
+            .domain(categories)
+            .rangeRound([0, width])
+            .paddingOuter(0.2)  // Increased outer padding between category groups
+            .paddingInner(0.2); // Added inner padding between category groups
+
+        const x1 = d3.scaleBand()
+            .domain(groups)
+            .rangeRound([0, x0.bandwidth()])
+            .padding(0.1);  // Increased padding between bars within groups
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.value)])
+            .nice()
+            .range([height, 0]);
+
+        const color = d3.scaleOrdinal()
+            .domain(groups)
+            .range(d3.schemeCategory10);
+
+        // Add X axis
+        svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x0));
+
+        // Add Y axis
+        svg.append("g")
+            .call(d3.axisLeft(y));
+
+        // Add X axis label
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("x", width / 2)
+            .attr("y", height + 40)
+            .style("text-anchor", "middle")
+            .text("Categories");
+
+        // Add Y axis label
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", -45)
+            .style("text-anchor", "middle")
+            .text("Values");
+
+        // Create and populate the bars
+        const categoryGroups = svg.selectAll(".category")
+            .data(categories)
+            .join("g")
+            .attr("class", "category")
+            .attr("transform", d => `translate(${x0(d)},0)`);
+
+        categoryGroups.selectAll(".bar")
+            .data(d => groups.map(group => ({
+                category: d,
+                group: group,
+                value: data.find(item => item.category === d && item.group === group).value
+            })))
+            .join("rect")
+            .attr("class", "bar")
+            .attr("x", d => x1(d.group))
+            .attr("y", d => y(d.value))
+            .attr("width", x1.bandwidth())
+            .attr("height", d => height - y(d.value))
+            .attr("fill", d => color(d.group));
+
+        // Add legend
+        const legend = svg.append("g")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", 10)
+            .attr("text-anchor", "start")
+            .selectAll("g")
+            .data(groups)
+            .join("g")
+            .attr("transform", (d, i) => `translate(${width + 10},${i * 20})`);
+
+        legend.append("rect")
+            .attr("x", 0)
+            .attr("width", 19)
+            .attr("height", 19)
+            .attr("fill", color);
+
+        legend.append("text")
+            .attr("x", 24)
+            .attr("y", 9.5)
+            .attr("dy", "0.32em")
+            .text(d => `Group ${d}`);
+
+        // Add square-shaped arrow from A Group z to B Group z
+        const aZValue = data.find(d => d.category === 'A' && d.group === 'z').value;
+        const bZValue = data.find(d => d.category === 'B' && d.group === 'z').value;
+
+        // Define arrow marker
+        svg.append("defs").append("marker")
+            .attr("id", "arrow")
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 8)
+            .attr("refY", 0)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "black");
+
+        // Calculate points for square path
+        const startX = x0('A') + x1('z') + x1.bandwidth() / 2;
+        const startY = y(aZValue);
+        const endX = x0('B') + x1('z') + x1.bandwidth() / 2;
+        const endY = y(bZValue);
+        const verticalOffset = 70; // Increased vertical offset to make line higher
+
+        // Draw square-shaped path
+        svg.append("path")
+            .attr("d", `
+                M ${startX},${startY}
+                L ${startX},${startY - verticalOffset}
+                L ${endX},${startY - verticalOffset}
+                L ${endX},${endY}
+            `)
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1.5)
+            .attr("marker-end", "url(#arrow)");
+
+        // Add text above the horizontal part of the arrow
+        svg.append("text")
+            .attr("x", (startX + endX) / 2)
+            .attr("y", startY - verticalOffset - 5)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "12px")
+            .text("Value increase");
+
+
+        // Add rectangle highlight for group C x
+        const cXValue = data.find(d => d.category === 'C' && d.group === 'x').value;
+        const cXRect = svg.append("rect")
+            .attr("x", x0('C') + x1('x') - 2)
+            .attr("y", y(cXValue) - 2)
+            .attr("width", x1.bandwidth() + 4)
+            .attr("height", 40)
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1.5);
+
+        // Add text annotation above rectangle
+        svg.append("text")
+            .attr("x", x0('C') + x1('x') + x1.bandwidth() / 2)
+            .attr("y", y(cXValue) - 10)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "12px")
+            .text("Group C x value");
+
+        // Add curly brace and annotation for A and B
+        const bracketPath = (startX, endX, y) => {
+            const height = 20;
+            return `M ${startX} ${y}
+                    C ${startX} ${y + height / 2} ${startX} ${y + height} ${(startX + endX) / 2} ${y + height}
+                    C ${endX} ${y + height} ${endX} ${y + height / 2} ${endX} ${y}`;
+        };
+
+        // Calculate positions for A and B categories
+        const bracketStartX = x0('A');
+        const bracketEndX = x0('B') + x0.bandwidth();
+        const bracketY = height + margin.bottom - 40;
+
+        // Add the curly brace
+        svg.append("path")
+            .attr("d", bracketPath(bracketStartX, bracketEndX, bracketY))
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1.5);
+
+        // Add annotation text below the curly brace
+        svg.append("text")
+            .attr("x", (bracketStartX + bracketEndX) / 2)
+            .attr("y", bracketY + 35)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "12px")
+            .text("Categories A and B");
+
+        // End of LOC Counting
+    </script>
+</body>
+
+</html>

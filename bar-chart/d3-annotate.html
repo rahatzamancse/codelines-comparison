@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>D3 Grouped Bar Chart</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+    <style>
+        .bar {
+            opacity: 0.8;
+        }
+
+        .bar:hover {
+            opacity: 1;
+        }
+
+        .axis-label {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .annotation-note-title {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chart"></div>
+    <script>
+        // Start of LOC Counting
+        // Data
+        const data = [
+            { "category": "A", "group": "x", "value": 0.1 },
+            { "category": "A", "group": "y", "value": 0.6 },
+            { "category": "A", "group": "z", "value": 0.9 },
+            { "category": "B", "group": "x", "value": 0.7 },
+            { "category": "B", "group": "y", "value": 0.2 },
+            { "category": "B", "group": "z", "value": 1.1 },
+            { "category": "C", "group": "x", "value": 0.6 },
+            { "category": "C", "group": "y", "value": 0.1 },
+            { "category": "C", "group": "z", "value": 0.2 }
+        ];
+
+        // Set dimensions and margins
+        const margin = { top: 20, right: 120, bottom: 50, left: 60 };
+        const width = 600 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+
+        // Create SVG
+        const svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right + 20)
+            .attr("height", height + margin.top + margin.bottom + 50)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Get unique categories and groups
+        const categories = [...new Set(data.map(d => d.category))];
+        const groups = [...new Set(data.map(d => d.group))];
+
+        // Set up scales
+        const x0 = d3.scaleBand()
+            .domain(categories)
+            .rangeRound([0, width])
+            .paddingOuter(0.2)  // Increased outer padding between category groups
+            .paddingInner(0.2); // Added inner padding between category groups
+
+        const x1 = d3.scaleBand()
+            .domain(groups)
+            .rangeRound([0, x0.bandwidth()])
+            .padding(0.1);  // Increased padding between bars within groups
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.value)])
+            .nice()
+            .range([height, 0]);
+
+        const color = d3.scaleOrdinal()
+            .domain(groups)
+            .range(d3.schemeCategory10);
+
+        // Add X axis
+        svg.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x0));
+
+        // Add Y axis
+        svg.append("g")
+            .call(d3.axisLeft(y));
+
+        // Add X axis label
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("x", width / 2)
+            .attr("y", height + 40)
+            .style("text-anchor", "middle")
+            .text("Categories");
+
+        // Add Y axis label
+        svg.append("text")
+            .attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", -45)
+            .style("text-anchor", "middle")
+            .text("Values");
+
+        // Create and populate the bars
+        const categoryGroups = svg.selectAll(".category")
+            .data(categories)
+            .join("g")
+            .attr("class", "category")
+            .attr("transform", d => `translate(${x0(d)},0)`);
+
+        categoryGroups.selectAll(".bar")
+            .data(d => groups.map(group => ({
+                category: d,
+                group: group,
+                value: data.find(item => item.category === d && item.group === group).value
+            })))
+            .join("rect")
+            .attr("class", "bar")
+            .attr("x", d => x1(d.group))
+            .attr("y", d => y(d.value))
+            .attr("width", x1.bandwidth())
+            .attr("height", d => height - y(d.value))
+            .attr("fill", d => color(d.group));
+
+        // Add legend
+        const legend = svg.append("g")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", 10)
+            .attr("text-anchor", "start")
+            .selectAll("g")
+            .data(groups)
+            .join("g")
+            .attr("transform", (d, i) => `translate(${width + 10},${i * 20})`);
+
+        legend.append("rect")
+            .attr("x", 0)
+            .attr("width", 19)
+            .attr("height", 19)
+            .attr("fill", color);
+
+        legend.append("text")
+            .attr("x", 24)
+            .attr("y", 9.5)
+            .attr("dy", "0.32em")
+            .text(d => `Group ${d}`);
+
+        // Create annotations using d3-annotation
+        // Calculate positions for annotations
+        let aZValue = data.find(d => d.category === 'A' && d.group === 'z').value;
+        let bZValue = data.find(d => d.category === 'B' && d.group === 'z').value;
+        let cXValue = data.find(d => d.category === 'C' && d.group === 'x').value;
+
+        aZValue += 0.01;
+        bZValue += 0.01;
+        cXValue += 0.01;
+
+        // Position for A to B arrow annotation
+        let startX = x0('A') + x1('z') + x1.bandwidth() / 2;
+        let startY = y(aZValue);
+        let endX = x0('B') + x1('z') + x1.bandwidth() / 2;
+        let endY = y(bZValue);
+
+        startX += 0.01;
+        startY += 0.01;
+        endX += 0.01;
+        endY += 0.01;
+
+        // Position for C-x annotation
+        let cXX = x0('C') + x1('x') + x1.bandwidth() / 2;
+        let cXY = y(cXValue);
+
+        cXX += 0.01;
+        cXY += 0.01;
+
+        // Position for A and B bracket annotation
+        let bracketStartX = x0('A');
+        let bracketEndX = x0('B') + x0.bandwidth();
+        let bracketY = height + margin.bottom - 30;
+
+        bracketStartX += 0.01;
+        bracketEndX += 0.01;
+        bracketY += 0.01;
+
+        // Create annotations array
+        const annotations = [
+            // Annotation 1: Arrow from A-z to B-z (value increase)
+            {
+                type: d3.annotationCalloutElbow,
+                note: {
+                    title: "Value increase",
+                    padding: 5
+                },
+                x: startX,
+                y: startY,
+                dx: (endX - startX) / 2,
+                dy: -70,
+                connector: {
+                    end: "arrow"
+                },
+                subject: {
+                    text: "",
+                    width: endX - startX,
+                    height: 0
+                }
+            },
+            // Annotation 2: Rectangle for C-x
+            {
+                type: d3.annotationCalloutRect,
+                note: {
+                    title: "Group C x value",
+                    padding: 5
+                },
+                x: cXX,
+                y: cXY,
+                dx: -30,
+                dy: -30,
+                subject: {
+                    width: x1.bandwidth() + 4,
+                    height: 40
+                }
+            },
+            // Annotation 3: Bracket for categories A and B
+            {
+                type: d3.annotationBracket,
+                note: {
+                    title: "Categories A and B",
+                    padding: 5
+                },
+                x: bracketStartX,
+                y: bracketY,
+                dx: 0,
+                dy: 20,
+                subject: {
+                    width: bracketEndX - bracketStartX,
+                    type: "horizontal"
+                }
+            }
+        ];
+
+        // Add annotations to the chart
+        const makeAnnotations = d3.annotation()
+            .annotations(annotations);
+
+        svg.append("g")
+            .attr("class", "annotation-group")
+            .call(makeAnnotations);
+
+        // End of LOC Counting
+    </script>
+</body>
+
+</html>

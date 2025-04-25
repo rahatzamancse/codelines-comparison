@@ -1,0 +1,254 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+    "description": "Stock prices of 5 Tech Companies over Time.",
+    "data": {
+        "url": "data/stocks.csv"
+    },
+    "layer": [
+        {
+            "mark": {
+                "type": "line",
+                "point": true
+            },
+            "encoding": {
+                "x": {
+                    "timeUnit": "year",
+                    "field": "date"
+                },
+                "y": {
+                    "aggregate": "mean",
+                    "field": "price",
+                    "type": "quantitative"
+                },
+                "color": {
+                    "field": "symbol",
+                    "type": "nominal"
+                }
+            }
+        },
+        {
+            "mark": {
+                "type": "line",
+                "strokeDash": [
+                    5,
+                    5
+                ],
+                "color": "black"
+            },
+            "transform": [
+                {
+                    "regression": "price",
+                    "on": "date"
+                }
+            ],
+            "encoding": {
+                "x": {
+                    "field": "date",
+                    "type": "temporal"
+                },
+                "y": {
+                    "field": "price",
+                    "type": "quantitative"
+                }
+            }
+        },
+        {
+            "mark": {
+                "type": "rule",
+                "strokeDash": [
+                    5,
+                    5
+                ],
+                "color": "gray"
+            },
+            "transform": [
+                {
+                    "filter": "year(datum.date) == 2007 && (datum.symbol == 'AAPL' || datum.symbol == 'GOOG')"
+                }
+            ],
+            "encoding": {
+                "x": {
+                    "timeUnit": "year",
+                    "field": "date"
+                },
+                "y": {
+                    "aggregate": "mean",
+                    "field": "price"
+                },
+                "detail": {
+                    "field": "symbol"
+                }
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "align": "left",
+                "dx": 10
+            },
+            "transform": [
+                {
+                    "filter": "year(datum.date) == 2007 && datum.symbol == 'AAPL'"
+                }
+            ],
+            "encoding": {
+                "x": {
+                    "timeUnit": "year",
+                    "field": "date"
+                },
+                "y": {
+                    "aggregate": "mean",
+                    "field": "price"
+                },
+                "text": {
+                    "value": "Price gap in 2007"
+                }
+            }
+        },
+        {
+            "mark": {
+                "type": "rect",
+                "stroke": "gray",
+                "strokeDash": [
+                    3,
+                    3
+                ],
+                "fill": null,
+                "width": 200,
+                "height": 100
+            },
+            "data": {
+                "values": [
+                    {
+                        "x": 30,
+                        "y": 30
+                    }
+                ]
+            },
+            "encoding": {
+                "x": {
+                    "field": "x",
+                    "type": "quantitative",
+                    "scale": null
+                },
+                "y": {
+                    "field": "y",
+                    "type": "quantitative",
+                    "scale": null
+                }
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "align": "center"
+            },
+            "data": {
+                "values": [
+                    {
+                        "x": 70,
+                        "y": 20
+                    }
+                ]
+            },
+            "encoding": {
+                "x": {
+                    "field": "x",
+                    "type": "quantitative",
+                    "scale": null
+                },
+                "y": {
+                    "field": "y",
+                    "type": "quantitative",
+                    "scale": null
+                },
+                "text": {
+                    "value": "such empty!"
+                }
+            }
+        },
+        {
+            "mark": {
+                "type": "text",
+                "align": "left",
+                "dx": 55,
+                "dy": -35
+            },
+            "transform": [
+                {
+                    "filter": "datum.symbol == 'GOOG'"
+                },
+                {
+                    "window": [
+                        {
+                            "op": "rank"
+                        }
+                    ],
+                    "sort": [
+                        {
+                            "field": "date"
+                        }
+                    ]
+                },
+                {
+                    "filter": "datum.rank == 1"
+                }
+            ],
+            "encoding": {
+                "x": {
+                    "timeUnit": "year",
+                    "field": "date"
+                },
+                "y": {
+                    "field": "price",
+                    "type": "quantitative"
+                },
+                "text": {
+                    "value": "First Point!"
+                }
+            }
+        },
+        {
+            "mark": {
+                "type": "line",
+                "color": "gray"
+            },
+            "transform": [
+                {
+                    "filter": "datum.symbol == 'GOOG'"
+                },
+                {
+                    "window": [
+                        {
+                            "op": "rank"
+                        }
+                    ],
+                    "sort": [
+                        {
+                            "field": "date"
+                        }
+                    ]
+                },
+                {
+                    "filter": "datum.rank == 1"
+                }
+            ],
+            "encoding": {
+                "x": {
+                    "timeUnit": "year",
+                    "field": "date"
+                },
+                "y": {
+                    "field": "price",
+                    "type": "quantitative"
+                },
+                "x2": {
+                    "value": 210
+                },
+                "y2": {
+                    "value": 50
+                }
+            }
+        }
+    ]
+}

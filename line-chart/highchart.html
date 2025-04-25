@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Prices Line Chart</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/annotations.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <style>
+        #lineChart {
+            width: 800px;
+            height: 400px;
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Container for the chart -->
+    <div id="lineChart"></div>
+
+    <script>
+        // Load and process the data
+        fetch('data/stocks.csv')
+            .then(response => response.text())
+            .then(csvData => {
+                // Parse CSV data
+                const lines = csvData.trim().split('\n');
+                const headers = lines[0].split(',');
+
+                const data = lines.slice(1).map(line => {
+                    const values = line.split(',');
+                    return {
+                        symbol: values[0],
+                        date: values[1],
+                        price: parseFloat(values[2])
+                    };
+                });
+
+                // Parse dates and group by symbol and year
+                const parseDate = date => {
+                    const parts = date.split(' ');
+                    const month = {
+                        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+                        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+                    }[parts[0]];
+                    const day = parseInt(parts[1]);
+                    const year = parseInt(parts[2]);
+                    return new Date(year, month, day);
+                };
+
+                // Process data with dates
+                data.forEach(d => {
+                    d.dateObj = parseDate(d.date);
+                    d.year = d.dateObj.getFullYear();
+                });
+
+                // Group by symbol and year, calculating mean price
+                const symbols = [...new Set(data.map(d => d.symbol))];
+                const years = [...new Set(data.map(d => d.year))].sort();
+
+                const aggregatedData = {};
+                symbols.forEach(symbol => {
+                    aggregatedData[symbol] = [];
+                    years.forEach(year => {
+                        const yearData = data.filter(d => d.symbol === symbol && d.year === year);
+                        if (yearData.length > 0) {
+                            const avgPrice = yearData.reduce((sum, d) => sum + d.price, 0) / yearData.length;
+                            aggregatedData[symbol].push([Date.UTC(year, 0, 1), avgPrice]);
+                        }
+                    });
+                });
+
+                // Prepare series data for Highcharts
+                const seriesData = symbols.map(symbol => ({
+                    name: symbol,
+                    data: aggregatedData[symbol]
+                }));
+
+                // Calculate regression line
+                const allPoints = Object.values(aggregatedData).flat();
+                const xValues = allPoints.map(point => point[0]);
+                const yValues = allPoints.map(point => point[1]);
+
+                // Simple linear regression - with safeguards for empty arrays
+                const n = xValues.length;
+                let regressionLine = [];
+                let minX, maxX;
+
+                if (n > 0) {
+                    const xMean = xValues.reduce((a, b) => a + b, 0) / n;
+                    const yMean = yValues.reduce((a, b) => a + b, 0) / n;
+
+                    const slope = xValues.map((x, i) => (x - xMean) * (yValues[i] - yMean))
+                        .reduce((a, b) => a + b, 0) /
+                        xValues.map(x => Math.pow(x - xMean, 2))
+                            .reduce((a, b) => a + b, 0) || 0; // Avoid division by zero
+                    const intercept = yMean - slope * xMean;
+
+                    // Create regression line points
+                    minX = Math.min(...xValues);
+                    maxX = Math.max(...xValues);
+                    regressionLine = [
+                        [minX, slope * minX + intercept],
+                        [maxX, slope * maxX + intercept]
+                    ];
+                }
+
+                // Add regression line as a series only if we have data
+                if (regressionLine.length > 0) {
+                    seriesData.push({
+                        name: 'Trend Line',
+                        data: regressionLine,
+                        dashStyle: 'dash',
+                        marker: { enabled: false },
+                        enableMouseTracking: false,
+                        color: 'black',
+                        lineWidth: 2
+                    });
+                }
+
+                // Find 2007 data points for annotations - with safety checks
+                const year2007 = Date.UTC(2007, 0, 1);
+                const aaplData = aggregatedData['AAPL'] || [];
+                const googData = aggregatedData['GOOG'] || [];
+                const aaplPoint = aaplData.find(point => new Date(point[0]).getFullYear() === 2007);
+                const googPoint = googData.find(point => new Date(point[0]).getFullYear() === 2007);
+
+                // Prepare annotations array
+                const chartAnnotations = [];
+
+                // Only add trend line annotation if regression line exists
+                if (regressionLine.length > 0) {
+                    chartAnnotations.push({
+                        // Trend line annotation
+                        labels: [{
+                            point: {
+                                xAxis: 0,
+                                yAxis: 0,
+                                x: (minX + maxX) / 2,
+                                y: (regressionLine[0][1] + regressionLine[1][1]) / 2
+                            },
+                            text: 'Trend upward!',
+                            y: -15
+                        }]
+                    });
+                }
+
+                // Only add empty annotation if we have data points
+                if (xValues.length > 0 && yValues.length > 0) {
+                    // Find a good position for the empty annotation - use the first data point
+                    const firstPoint = allPoints[0] || [minX, yValues[0]];
+
+                    chartAnnotations.push({
+                        // Empty annotation
+                        labels: [{
+                            point: {
+                                xAxis: 0,
+                                yAxis: 0,
+                                x: firstPoint[0],
+                                y: firstPoint[1] * 0.8
+                            },
+                            text: 'such empty!',
+                            y: -10
+                        }],
+                        shapes: [{
+                            type: 'rect',
+                            xAxis: 0,
+                            yAxis: 0,
+                            point: {
+                                x: firstPoint[0],
+                                y: firstPoint[1] * 0.7
+                            },
+                            width: 100,
+                            height: 50,
+                            fill: 'none',
+                            stroke: 'gray',
+                            strokeWidth: 1,
+                            dashStyle: 'Dash'
+                        }]
+                    });
+                }
+
+                // Find first data point for any symbol for the "First Point" annotation
+                const firstSymbol = symbols[0];
+                const firstData = aggregatedData[firstSymbol] || [];
+
+                if (firstData.length > 0) {
+                    chartAnnotations.push({
+                        // First point annotation
+                        labels: [{
+                            point: {
+                                xAxis: 0,
+                                yAxis: 0,
+                                x: firstData[0][0],
+                                y: firstData[0][1]
+                            },
+                            text: 'First Point!',
+                            x: 10,
+                            y: -20
+                        }],
+                        shapes: [{
+                            type: 'path',
+                            xAxis: 0,
+                            yAxis: 0,
+                            points: [
+                                { x: firstData[0][0], y: firstData[0][1] },
+                                { x: firstData[0][0] + 10, y: firstData[0][1] - 15 }
+                            ],
+                            markerEnd: 'arrow',
+                            stroke: 'gray',
+                            strokeWidth: 2
+                        }]
+                    });
+                }
+
+                // Only add price gap annotation if we have at least two symbols with data
+                if (symbols.length >= 2) {
+                    // Get the first two symbols
+                    const symbol1 = symbols[0];
+                    const symbol2 = symbols[1];
+                    const data1 = aggregatedData[symbol1] || [];
+                    const data2 = aggregatedData[symbol2] || [];
+
+                    // Find matching year points
+                    if (data1.length > 0 && data2.length > 0) {
+                        // Use the first year where both have data
+                        const year1 = new Date(data1[0][0]).getFullYear();
+                        const matchingPoint1 = data1[0];
+                        const matchingPoint2 = data2.find(p => new Date(p[0]).getFullYear() === year1) || data2[0];
+
+                        chartAnnotations.push({
+                            // Price gap annotation
+                            labels: [{
+                                point: {
+                                    xAxis: 0,
+                                    yAxis: 0,
+                                    x: matchingPoint1[0],
+                                    y: (matchingPoint1[1] + matchingPoint2[1]) / 2
+                                },
+                                text: `Price gap: ${symbol1} vs ${symbol2}`,
+                                x: 10
+                            }],
+                            shapes: [{
+                                type: 'path',
+                                xAxis: 0,
+                                yAxis: 0,
+                                points: [
+                                    { x: matchingPoint1[0], y: matchingPoint1[1] },
+                                    { x: matchingPoint1[0], y: matchingPoint2[1] }
+                                ],
+                                markerEnd: 'arrow',
+                                markerStart: 'arrow',
+                                stroke: 'gray',
+                                strokeWidth: 2,
+                                dashStyle: 'Dash'
+                            }]
+                        });
+                    }
+                }
+
+                // Create the chart
+                Highcharts.chart('lineChart', {
+                    chart: {
+                        type: 'line'
+                    },
+                    title: {
+                        text: 'Stock Prices Line Chart'
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        title: {
+                            text: 'Year'
+                        },
+                        labels: {
+                            format: '{value:%Y}'
+                        }
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Price'
+                        },
+                        min: 0
+                    },
+                    legend: {
+                        layout: 'vertical',
+                        align: 'right',
+                        verticalAlign: 'middle'
+                    },
+                    plotOptions: {
+                        series: {
+                            marker: {
+                                enabled: true,
+                                radius: 4
+                            }
+                        }
+                    },
+                    annotations: chartAnnotations,
+                    series: seriesData
+                });
+            })
+            .catch(error => console.error('Error loading the CSV file:', error));
+    </script>
+
+</body>
+
+</html>

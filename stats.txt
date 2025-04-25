@@ -1,0 +1,101 @@
+bar-chart:
+    highchart.html:
+        Code+Data+Annotation: 23-123
+        Data: 23-34
+        Annotation: 71-123 
+    d3.html:
+        Code+Data+Annotation: 28-238
+        Data: 28-38
+        Annotation: 147-238 
+    vega.json:
+        Code+Data+Annotation: all
+        Data: 6-74
+        Annotation: 75-103,153-477 
+    vega-lite.json:
+        Code+Data+Annotation: all
+        Data: 3-51
+        Annotation: 71-306 
+    vl-annotation.json:
+        Code+Data+Annotation: all
+        Data: 3-51
+        Annotation: 68-149 
+    d3-annotate.html:
+        Code+Data+Annotation: 33-251
+        Data: 33-43
+        Annotation: 152-251
+    ggplot2.R:
+        Code+Data+Annotation: all
+        Data: 9-13
+        Annotation: 36-148,151
+    ggplot2-annotate.R:
+        Code+Data+Annotation: all
+        Data: 7-12
+        Annotation: 31-94,97 
+
+line-chart:
+    highchart.html:
+        Code+Data+Annotation: 28-306
+        Data: 28
+        Annotation: 84-264,302
+    d3.html:
+        Code+Data+Annotation: 23-267
+        Data: 36
+        Annotation: 134-267 
+    vega.json:
+        Code+Data+Annotation: all
+        Data: 6-46
+        Annotation: 47-87,153-383 
+    vega-lite.json:
+        Code+Data+Annotation: all
+        Data: 5
+        Annotation: 29-252
+    vl-annotation.json:
+        Code+Data+Annotation: all
+        Data: 5
+        Annotation: 26-95 
+    d3-annotate.html:
+        Code+Data+Annotation: 28-260
+        Data: 41
+        Annotation: 138-260 
+    ggplot2.R:
+        Code+Data+Annotation: all
+        Data: 12
+        Annotation: 53-161,172
+    ggplot2-annotate.R:
+        Code+Data+Annotation: all
+        Data: 11
+        Annotation: 53-142,153
+
+scatter-chart:
+    highchart.html:
+        Code+Data+Annotation: 31-216
+        Data: 32
+        Annotation: 64-72,124-210 
+    d3.html:
+        Code+Data+Annotation: 35-263
+        Data: 55
+        Annotation: 169-257 
+    vega.json:
+        Code+Data+Annotation: all
+        Data: 10-32
+        Annotation: 33-59,104-277 
+    vega-lite.json:
+        Code+Data+Annotation: all
+        Data: 5
+        Annotation: 34-176
+    vl-annotation.json:
+        Code+Data+Annotation: all
+        Data: 5
+        Annotation: 32-79
+    d3-annotate.html:
+        Code+Data+Annotation: 40-270
+        Data: 60
+        Annotation: 171-270 
+    ggplot2.R:
+        Code+Data+Annotation: all
+        Data: 14
+        Annotation: 67-206,253
+    ggplot2-annotate.R:
+        Code+Data+Annotation: all
+        Data: 14
+        Annotation: 67-167,214

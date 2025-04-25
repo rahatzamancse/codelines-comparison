@@ -1,0 +1,532 @@
+{
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "description": "Stock prices of 5 Tech Companies over Time.",
+    "width": 200,
+    "height": 200,
+    "data": [
+        {
+            "name": "source_0",
+            "url": "data/stocks.csv",
+            "format": {
+                "type": "csv",
+                "parse": {
+                    "date": "date"
+                },
+                "delimiter": ","
+            },
+            "transform": [
+                {
+                    "field": "date",
+                    "type": "timeunit",
+                    "units": [
+                        "year"
+                    ],
+                    "as": [
+                        "year_date",
+                        "year_date_end"
+                    ]
+                },
+                {
+                    "type": "aggregate",
+                    "groupby": [
+                        "year_date",
+                        "symbol"
+                    ],
+                    "ops": [
+                        "mean"
+                    ],
+                    "fields": [
+                        "price"
+                    ],
+                    "as": [
+                        "mean_price"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "annotation_points",
+            "source": "source_0",
+            "transform": [
+                {
+                    "type": "filter",
+                    "expr": "datum.symbol == 'GOOG' && timeFormat(datum.year_date, '%Y') == '2007' || datum.symbol == 'AAPL' && timeFormat(datum.year_date, '%Y') == '2007'"
+                }
+            ]
+        },
+        {
+            "name": "first_GOOG_point",
+            "source": "source_0",
+            "transform": [
+                {
+                    "type": "filter",
+                    "expr": "datum.symbol == 'GOOG'"
+                },
+                {
+                    "type": "collect",
+                    "sort": {
+                        "field": "year_date",
+                        "order": "ascending"
+                    }
+                },
+                {
+                    "type": "window",
+                    "ops": [
+                        "rank"
+                    ],
+                    "as": [
+                        "rank"
+                    ]
+                },
+                {
+                    "type": "filter",
+                    "expr": "datum.rank == 1"
+                }
+            ]
+        }
+    ],
+    "marks": [
+        {
+            "name": "layer_0_pathgroup",
+            "type": "group",
+            "from": {
+                "facet": {
+                    "name": "faceted_path_layer_0_main",
+                    "data": "source_0",
+                    "groupby": [
+                        "symbol"
+                    ]
+                }
+            },
+            "marks": [
+                {
+                    "name": "layer_0_marks",
+                    "type": "line",
+                    "from": {
+                        "data": "faceted_path_layer_0_main"
+                    },
+                    "encode": {
+                        "update": {
+                            "stroke": {
+                                "scale": "color",
+                                "field": "symbol"
+                            },
+                            "x": {
+                                "scale": "x",
+                                "field": "year_date"
+                            },
+                            "y": {
+                                "scale": "y",
+                                "field": "mean_price"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "layer_1_marks",
+            "type": "symbol",
+            "style": [
+                "point"
+            ],
+            "from": {
+                "data": "source_0"
+            },
+            "encode": {
+                "update": {
+                    "fill": {
+                        "scale": "color",
+                        "field": "symbol"
+                    },
+                    "x": {
+                        "scale": "x",
+                        "field": "year_date"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "field": "mean_price"
+                    }
+                }
+            }
+        },
+        {
+            "name": "annotation_marks",
+            "type": "line",
+            "from": {
+                "data": "annotation_points"
+            },
+            "encode": {
+                "update": {
+                    "stroke": {
+                        "value": "black"
+                    },
+                    "x": {
+                        "scale": "x",
+                        "field": "year_date"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "field": "mean_price"
+                    }
+                }
+            }
+        },
+        {
+            "name": "annotation_start_marks",
+            "type": "symbol",
+            "from": {
+                "data": "annotation_points"
+            },
+            "encode": {
+                "update": {
+                    "shape": {
+                        "value": "triangle-left"
+                    },
+                    "fill": {
+                        "value": "black"
+                    },
+                    "x": {
+                        "scale": "x",
+                        "field": "year_date"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "field": "mean_price"
+                    },
+                    "size": {
+                        "value": 100
+                    }
+                }
+            }
+        },
+        {
+            "name": "annotation_end_marks",
+            "type": "symbol",
+            "from": {
+                "data": "annotation_points"
+            },
+            "encode": {
+                "update": {
+                    "shape": {
+                        "value": "triangle-right"
+                    },
+                    "fill": {
+                        "value": "black"
+                    },
+                    "x": {
+                        "scale": "x",
+                        "field": "year_date"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "field": "mean_price"
+                    },
+                    "size": {
+                        "value": 100
+                    }
+                }
+            }
+        },
+        {
+            "name": "first_point_arrow",
+            "type": "rule",
+            "from": {
+                "data": "first_GOOG_point"
+            },
+            "encode": {
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "field": "year_date"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "field": "mean_price"
+                    },
+                    "x2": {
+                        "signal": "scale('x', datum.year_date) - 30"
+                    },
+                    "y2": {
+                        "signal": "scale('y', datum.mean_price) - 20"
+                    },
+                    "stroke": {
+                        "value": "black"
+                    },
+                    "strokeWidth": {
+                        "value": 2
+                    },
+                    "strokeDash": {
+                        "value": [
+                            4,
+                            4
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "name": "first_point_text",
+            "type": "text",
+            "from": {
+                "data": "first_GOOG_point"
+            },
+            "encode": {
+                "update": {
+                    "x": {
+                        "signal": "scale('x', datum.year_date) - 60"
+                    },
+                    "y": {
+                        "signal": "scale('y', datum.mean_price) - 25"
+                    },
+                    "text": {
+                        "value": "First Point"
+                    },
+                    "fill": {
+                        "value": "black"
+                    },
+                    "fontSize": {
+                        "value": 12
+                    },
+                    "align": {
+                        "value": "left"
+                    },
+                    "baseline": {
+                        "value": "middle"
+                    }
+                }
+            }
+        },
+        {
+            "name": "empty_rectangle",
+            "type": "rect",
+            "encode": {
+                "update": {
+                    "x": {
+                        "signal": "width - 170"
+                    },
+                    "y": {
+                        "signal": "20"
+                    },
+                    "width": {
+                        "value": 60
+                    },
+                    "height": {
+                        "value": 60
+                    },
+                    "fill": {
+                        "value": "#ffffff10"
+                    },
+                    "stroke": {
+                        "value": "black"
+                    },
+                    "strokeWidth": {
+                        "value": 1
+                    }
+                }
+            }
+        },
+        {
+            "name": "empty_text",
+            "type": "text",
+            "encode": {
+                "update": {
+                    "x": {
+                        "signal": "width - 170"
+                    },
+                    "y": {
+                        "signal": "15"
+                    },
+                    "text": {
+                        "value": "Such Empty!"
+                    },
+                    "fill": {
+                        "value": "black"
+                    },
+                    "fontSize": {
+                        "value": 12
+                    },
+                    "align": {
+                        "value": "left"
+                    },
+                    "baseline": {
+                        "value": "bottom"
+                    }
+                }
+            }
+        },
+        {
+            "name": "upward_line",
+            "type": "rule",
+            "encode": {
+                "update": {
+                    "x": {
+                        "value": 50
+                    },
+                    "y": {
+                        "value": 150
+                    },
+                    "x2": {
+                        "value": 80
+                    },
+                    "y2": {
+                        "value": 50
+                    },
+                    "stroke": {
+                        "value": "red"
+                    },
+                    "strokeWidth": {
+                        "value": 2
+                    }
+                }
+            }
+        }
+    ],
+    "scales": [
+        {
+            "name": "x",
+            "type": "time",
+            "domain": {
+                "fields": [
+                    {
+                        "data": "source_0",
+                        "field": "year_date"
+                    },
+                    {
+                        "data": "source_0",
+                        "field": "year_date"
+                    }
+                ]
+            },
+            "range": [
+                0,
+                {
+                    "signal": "width"
+                }
+            ]
+        },
+        {
+            "name": "y",
+            "type": "linear",
+            "domain": {
+                "fields": [
+                    {
+                        "data": "source_0",
+                        "field": "mean_price"
+                    },
+                    {
+                        "data": "source_0",
+                        "field": "mean_price"
+                    }
+                ]
+            },
+            "range": [
+                {
+                    "signal": "height"
+                },
+                0
+            ]
+        },
+        {
+            "name": "color",
+            "type": "ordinal",
+            "domain": {
+                "fields": [
+                    {
+                        "data": "source_0",
+                        "field": "symbol"
+                    },
+                    {
+                        "data": "source_0",
+                        "field": "symbol"
+                    }
+                ],
+                "sort": true
+            },
+            "range": "category"
+        }
+    ],
+    "axes": [
+        {
+            "scale": "x",
+            "orient": "bottom",
+            "gridScale": "y",
+            "grid": true,
+            "tickCount": {
+                "signal": "ceil(width/40)"
+            },
+            "tickMinStep": {
+                "signal": "datetime(2002, 0, 1, 0, 0, 0, 0) - datetime(2001, 0, 1, 0, 0, 0, 0)"
+            },
+            "domain": false,
+            "labels": false,
+            "aria": false,
+            "maxExtent": 0,
+            "minExtent": 0,
+            "ticks": false,
+            "zindex": 0
+        },
+        {
+            "scale": "y",
+            "orient": "left",
+            "gridScale": "x",
+            "grid": true,
+            "tickCount": {
+                "signal": "ceil(height/40)"
+            },
+            "domain": false,
+            "labels": false,
+            "aria": false,
+            "maxExtent": 0,
+            "minExtent": 0,
+            "ticks": false,
+            "zindex": 0
+        },
+        {
+            "scale": "x",
+            "orient": "bottom",
+            "grid": false,
+            "title": "date (year)",
+            "format": {
+                "signal": "timeUnitSpecifier([\"year\"], {\"year-month\":\"%b %Y \",\"year-month-date\":\"%b %d, %Y \"})"
+            },
+            "labelFlush": true,
+            "labelOverlap": true,
+            "tickCount": {
+                "signal": "ceil(width/40)"
+            },
+            "tickMinStep": {
+                "signal": "datetime(2002, 0, 1, 0, 0, 0, 0) - datetime(2001, 0, 1, 0, 0, 0, 0)"
+            },
+            "zindex": 0
+        },
+        {
+            "scale": "y",
+            "orient": "left",
+            "grid": false,
+            "title": "Mean of price",
+            "labelOverlap": true,
+            "tickCount": {
+                "signal": "ceil(height/40)"
+            },
+            "zindex": 0
+        }
+    ],
+    "legends": [
+        {
+            "stroke": "color",
+            "symbolType": "circle",
+            "title": "symbol",
+            "fill": "color",
+            "encode": {
+                "symbols": {
+                    "update": {
+                        "opacity": {
+                            "value": 1
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}

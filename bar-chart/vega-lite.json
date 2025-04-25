@@ -1,0 +1,308 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "values": [
+      {
+        "category": "A",
+        "group": "x",
+        "value": 0.1
+      },
+      {
+        "category": "A",
+        "group": "y",
+        "value": 0.6
+      },
+      {
+        "category": "A",
+        "group": "z",
+        "value": 0.9
+      },
+      {
+        "category": "B",
+        "group": "x",
+        "value": 0.7
+      },
+      {
+        "category": "B",
+        "group": "y",
+        "value": 0.2
+      },
+      {
+        "category": "B",
+        "group": "z",
+        "value": 1.1
+      },
+      {
+        "category": "C",
+        "group": "x",
+        "value": 0.6
+      },
+      {
+        "category": "C",
+        "group": "y",
+        "value": 0.1
+      },
+      {
+        "category": "C",
+        "group": "z",
+        "value": 0.2
+      }
+    ]
+  },
+  "layer": [
+    {
+      "mark": "bar",
+      "encoding": {
+        "x": {
+          "field": "category"
+        },
+        "y": {
+          "field": "value",
+          "type": "quantitative"
+        },
+        "xOffset": {
+          "field": "group"
+        },
+        "color": {
+          "field": "group"
+        }
+      }
+    },
+    {
+      "data": {
+        "values": [
+          {
+            "x1": "A",
+            "y1": 0.9,
+            "x2": "A",
+            "y2": 1.5
+          },
+          {
+            "x1": "A",
+            "y1": 1.5,
+            "x2": "B",
+            "y2": 1.5
+          },
+          {
+            "x1": "B",
+            "y1": 1.5,
+            "x2": "B",
+            "y2": 1.1
+          }
+        ]
+      },
+      "mark": {
+        "type": "rule",
+        "color": "black"
+      },
+      "encoding": {
+        "x": {
+          "field": "x1",
+          "type": "nominal"
+        },
+        "y": {
+          "field": "y1",
+          "type": "quantitative"
+        },
+        "x2": {
+          "field": "x2"
+        },
+        "y2": {
+          "field": "y2"
+        }
+      }
+    },
+    {
+      "data": {
+        "values": [
+          {
+            "x": "A",
+            "y": 1.6,
+            "text": "Value Increase"
+          }
+        ]
+      },
+      "mark": {
+        "type": "text",
+        "fontSize": 12,
+        "align": "center"
+      },
+      "encoding": {
+        "x": {
+          "field": "x",
+          "type": "nominal"
+        },
+        "y": {
+          "field": "y",
+          "type": "quantitative"
+        },
+        "text": {
+          "field": "text"
+        }
+      }
+    },
+    {
+      "data": {
+        "values": [
+          {
+            "x": "B",
+            "y": 1.1,
+            "size": 10,
+            "shape": "triangle-down"
+          }
+        ]
+      },
+      "mark": {
+        "type": "point",
+        "filled": true,
+        "color": "black"
+      },
+      "encoding": {
+        "x": {
+          "field": "x",
+          "type": "nominal"
+        },
+        "y": {
+          "field": "y",
+          "type": "quantitative"
+        },
+        "size": {
+          "field": "size",
+          "type": "quantitative",
+          "legend": null
+        },
+        "shape": {
+          "field": "shape",
+          "type": "nominal",
+          "legend": null
+        }
+      }
+    },
+    {
+      "data": {
+        "values": [
+          {
+            "x": "C",
+            "y": 0.6,
+            "width": 0.2,
+            "height": 0.2
+          }
+        ]
+      },
+      "mark": {
+        "type": "rect",
+        "fill": "transparent",
+        "stroke": "black",
+        "strokeWidth": 1.5
+      },
+      "encoding": {
+        "x": {
+          "field": "x",
+          "type": "nominal"
+        },
+        "y": {
+          "field": "y",
+          "type": "quantitative"
+        },
+        "width": {
+          "value": 50
+        },
+        "height": {
+          "value": 40
+        }
+      }
+    },
+    {
+      "data": {
+        "values": [
+          {
+            "x": "C",
+            "y": 0.8,
+            "text": "Group C x value"
+          }
+        ]
+      },
+      "mark": {
+        "type": "text",
+        "fontSize": 12,
+        "align": "center"
+      },
+      "encoding": {
+        "x": {
+          "field": "x",
+          "type": "nominal"
+        },
+        "y": {
+          "field": "y",
+          "type": "quantitative"
+        },
+        "text": {
+          "field": "text"
+        }
+      }
+    },
+    {
+      "data": {
+        "values": [
+          {
+            "x": "A",
+            "x2": "B",
+            "y": -0.1,
+            "curvature": 30
+          }
+        ]
+      },
+      "mark": {
+        "type": "rule",
+        "strokeWidth": 1.5
+      },
+      "encoding": {
+        "x": {
+          "field": "x",
+          "type": "nominal",
+          "scale": {
+            "padding": 0.2
+          }
+        },
+        "x2": {
+          "field": "x2"
+        },
+        "y": {
+          "field": "y",
+          "type": "quantitative"
+        }
+      }
+    },
+    {
+      "data": {
+        "values": [
+          {
+            "x": "A",
+            "x2": "B",
+            "y": -0.2,
+            "text": "Categories A and B"
+          }
+        ]
+      },
+      "mark": {
+        "type": "text",
+        "fontSize": 12,
+        "align": "center"
+      },
+      "encoding": {
+        "x": {
+          "field": "x",
+          "type": "nominal",
+          "band": 0.5
+        },
+        "y": {
+          "field": "y",
+          "type": "quantitative"
+        },
+        "text": {
+          "field": "text"
+        }
+      }
+    }
+  ]
+}

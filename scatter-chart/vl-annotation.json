@@ -1,0 +1,80 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "description": "A scatterplot showing body mass and flipper lengths of penguins.",
+    "data": {
+        "url": "data/penguins.json"
+    },
+    "mark": "point",
+    "encoding": {
+        "x": {
+            "field": "Flipper Length (mm)",
+            "type": "quantitative",
+            "scale": {
+                "zero": false
+            }
+        },
+        "y": {
+            "field": "Body Mass (g)",
+            "type": "quantitative",
+            "scale": {
+                "zero": false
+            }
+        },
+        "color": {
+            "field": "Species",
+            "type": "nominal"
+        },
+        "shape": {
+            "field": "Species",
+            "type": "nominal"
+        }
+    },
+    "annotations": [
+        {
+            "target": {
+                "type": "data-expr",
+                "expr": "datum.Species == 'Gentoo' && datum['Body Mass (g)'] > 5500"
+            },
+            "enclosure": {},
+            "text": {
+                "text": "Gentoo",
+                "style": {
+                    "fontSize": 14
+                },
+                "position": "lowerMiddle",
+                "dx": -20
+            }
+        },
+        {
+            "target": {
+                "type": "data-index",
+                "index": 1
+            },
+            "connector": {},
+            "text": {
+                "text": "Outlier",
+                "style": {
+                    "fontSize": 14
+                },
+                "position": {
+                    "type": "pixel-space",
+                    "x": 10,
+                    "y": 10
+                }
+            }
+        },
+        {
+            "target": {
+                "type": "pixel-space",
+                "x": 310,
+                "y": 100
+            },
+            "text": {
+                "text": "G for Gentoo",
+                "style": {
+                    "color": "green"
+                }
+            }
+        }
+    ]
+}

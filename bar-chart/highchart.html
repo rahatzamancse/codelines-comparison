@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highcharts Bar Chart</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/annotations.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+</head>
+
+<body>
+
+    <!-- Container for the chart -->
+    <div id="barChart" style="width: 600px; height: 400px; margin: auto;"></div>
+
+    <script>
+
+
+        // Start of LOC Counting
+        const data = [
+            { "category": "A", "group": "x", "value": 0.1 },
+            { "category": "A", "group": "y", "value": 0.6 },
+            { "category": "A", "group": "z", "value": 0.9 },
+            { "category": "B", "group": "x", "value": 0.7 },
+            { "category": "B", "group": "y", "value": 0.2 },
+            { "category": "B", "group": "z", "value": 1.1 },
+            { "category": "C", "group": "x", "value": 0.6 },
+            { "category": "C", "group": "y", "value": 0.1 },
+            { "category": "C", "group": "z", "value": 0.2 }
+        ];
+        // Initialize Highcharts
+        // Transform data into series by group
+        const seriesData = ['x', 'y', 'z'].map(group => ({
+            name: `Group ${group}`,
+            data: data.filter(d => d.group === group).map(d => ({
+                name: d.category,
+                y: d.value
+            }))
+        }));
+
+        // Add Annotations module
+        Highcharts.chart('barChart', {
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Grouped Bar Chart'
+            },
+            xAxis: {
+                categories: ['A', 'B', 'C'],
+                title: {
+                    text: 'Categories'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Value'
+                }
+            },
+            plotOptions: {
+                column: {
+                    grouping: true,
+                    pointPadding: 0.1,
+                    groupPadding: 0.2
+                }
+            },
+            annotations: [{
+                // Arrow from A Group z to B Group z
+                labels: [{
+                    point: { x: 0, y: 0.9 },
+                    text: 'Value increase',
+                    y: -40
+                }],
+                shapes: [{
+                    type: 'path',
+                    points: [
+                        { x: 0, y: 0.9 },
+                        { x: 0, y: 1.3 },
+                        { x: 1, y: 1.3 },
+                        { x: 1, y: 1.1 }
+                    ],
+                    markerEnd: 'arrow'
+                }]
+            }, {
+                // Highlight for Group C x
+                labels: [{
+                    point: { x: 2, y: 0.6 },
+                    text: 'Group C x value',
+                    y: -20
+                }],
+                shapes: [{
+                    type: 'rect',
+                    point: { x: 2, y: 0.6 },
+                    width: 30,
+                    height: 40,
+                    fill: 'none',
+                    stroke: 'black',
+                    strokeWidth: 2
+                }]
+            }, {
+                // Curly brace for A and B
+                labels: [{
+                    point: { x: 0.5, y: 0 },
+                    text: 'Categories A and B',
+                    y: 35
+                }],
+                shapes: [{
+                    type: 'path',
+                    points: [
+                        { x: 0, y: -0.1 },
+                        { x: 0, y: -0.2 },
+                        { x: 1, y: -0.2 },
+                        { x: 1, y: -0.1 }
+                    ],
+                    strokeWidth: 2
+                }]
+            }],
+            series: seriesData
+        });
+        // End of LOC Counting
+    </script>
+
+</body>
+
+</html>

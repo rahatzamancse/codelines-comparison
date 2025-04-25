@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Stock Prices Line Chart</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+    <style>
+        .line {
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .dot {
+            stroke: white;
+            stroke-width: 1;
+        }
+
+        .annotation-note-title {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <svg id="chart"></svg>
+    <script>
+        // Set the dimensions and margins of the graph
+        const margin = { top: 40, right: 80, bottom: 60, left: 60 };
+        const width = 800 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+
+        // Create the SVG container
+        const svg = d3.select("#chart")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Load and process the data
+        d3.csv("data/stocks.csv").then(function (data) {
+            // Parse the date using the new format (MMM D YYYY)
+            const parseDate = d3.timeParse("%b %d %Y");
+            data.forEach(d => {
+                d.date = parseDate(d.date);
+                d.price = +d.price;
+            });
+
+            // Group data by symbol and year, calculating mean price
+            const yearFormat = d3.timeFormat("%Y");
+            const nestedData = Array.from(
+                d3.group(data, d => d.symbol), ([symbol, values]) => {
+                    // Group by year and calculate mean price
+                    const yearlyData = Array.from(
+                        d3.group(values, d => yearFormat(d.date)), ([year, yearValues]) => ({
+                            symbol: symbol,
+                            date: new Date(year),
+                            price: d3.mean(yearValues, d => d.price)
+                        }));
+                    return [symbol, yearlyData];
+                });
+
+            // Convert back to Map for consistency with rest of code
+            const aggregatedData = new Map(nestedData);
+
+            // Update scales to use aggregated data
+            const allAggregatedValues = Array.from(aggregatedData.values()).flat();
+
+            const xScale = d3.scaleTime()
+                .domain(d3.extent(allAggregatedValues, d => d.date))
+                .range([0, width]);
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(allAggregatedValues, d => d.price)])
+                .range([height, 0]);
+
+            const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+            // Add X axis
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale)
+                    .tickFormat(d3.timeFormat("%Y")));
+
+            // Add Y axis
+            svg.append("g")
+                .call(d3.axisLeft(yScale));
+
+            // Create line generator
+            const line = d3.line()
+                .x(d => xScale(d.date))
+                .y(d => yScale(d.price));
+
+            // Add lines
+            aggregatedData.forEach((values, symbol) => {
+                // Add the line
+                svg.append("path")
+                    .datum(values)
+                    .attr("class", "line")
+                    .attr("d", line)
+                    .style("stroke", colorScale(symbol));
+
+                // Add the points
+                svg.selectAll(`dot-${symbol}`)
+                    .data(values)
+                    .enter()
+                    .append("circle")
+                    .attr("class", "dot")
+                    .attr("cx", d => xScale(d.date))
+                    .attr("cy", d => yScale(d.price))
+                    .attr("r", 4)
+                    .style("fill", colorScale(symbol));
+            });
+
+            // Add legend
+            const legend = svg.append("g")
+                .attr("font-family", "sans-serif")
+                .attr("font-size", 10)
+                .attr("text-anchor", "start")
+                .selectAll("g")
+                .data(aggregatedData.keys())
+                .enter()
+                .append("g")
+                .attr("transform", (d, i) => `translate(${width + 10},${i * 20})`);
+
+            legend.append("rect")
+                .attr("x", 0)
+                .attr("width", 19)
+                .attr("height", 19)
+                .attr("fill", colorScale);
+
+            legend.append("text")
+                .attr("x", 24)
+                .attr("y", 9.5)
+                .attr("dy", "0.32em")
+                .text(d => d);
+
+            // Calculate regression line
+            const allPoints = Array.from(aggregatedData.values()).flat();
+            const xValues = allPoints.map(d => d.date.getTime());
+            const yValues = allPoints.map(d => d.price);
+
+            // Simple linear regression
+            const n = xValues.length;
+            const xMean = xValues.reduce((a, b) => a + b) / n;
+            const yMean = yValues.reduce((a, b) => a + b) / n;
+
+            const slope = xValues.map((x, i) => (x - xMean) * (yValues[i] - yMean))
+                .reduce((a, b) => a + b) /
+                xValues.map(x => Math.pow(x - xMean, 2))
+                    .reduce((a, b) => a + b);
+            const intercept = yMean - slope * xMean;
+
+            // Create regression line points
+            const regressionLine = [
+                new Date(Math.min(...xValues)),
+                new Date(Math.max(...xValues))
+            ].map(x => ({
+                date: x,
+                price: slope * x.getTime() + intercept
+            }));
+
+            // Add regression line
+            const regressionPath = svg.append("path")
+                .datum(regressionLine)
+                .attr("class", "regression-line")
+                .attr("d", line)
+                .style("stroke", "black")
+                .style("stroke-width", 2)
+                .style("stroke-dasharray", "5,5");
+
+            // Find the center point of the regression line for annotation
+            const pathLength = regressionPath.node().getTotalLength();
+            const centerPoint = regressionPath.node().getPointAtLength(pathLength / 2);
+
+            // Find 2007 data points for AAPL and GOOG
+            const year2007 = new Date('2007-01-01');
+            const aaplPoint = Array.from(aggregatedData.get('AAPL')).find(d => d.date.getFullYear() === 2007);
+            const googPoint = Array.from(aggregatedData.get('GOOG')).find(d => d.date.getFullYear() === 2007);
+
+            // Get first GOOG point for connector annotation
+            const firstGoogPoint = data.find(d => d.symbol === 'GOOG');
+
+            // Create annotations array
+            const annotations = [
+                // Regression line annotation
+                {
+                    type: d3.annotationCallout,
+                    note: {
+                        title: "Trend upward!",
+                        padding: 5
+                    },
+                    x: centerPoint.x,
+                    y: centerPoint.y,
+                    dx: 0,
+                    dy: -30
+                },
+
+                // Empty annotation (top left)
+                {
+                    type: d3.annotationCalloutRect,
+                    note: {
+                        title: "such empty!",
+                        padding: 5
+                    },
+                    x: 30,
+                    y: 80,
+                    dx: 0,
+                    dy: -50,
+                    subject: {
+                        width: 200,
+                        height: 100
+                    }
+                }
+            ];
+
+            // Add price gap annotation if both points exist
+            if (aaplPoint && googPoint) {
+                annotations.push({
+                    type: d3.annotationCalloutElbow,
+                    note: {
+                        title: "Price gap in 2007",
+                        padding: 5
+                    },
+                    x: xScale(aaplPoint.date),
+                    y: yScale((aaplPoint.price + googPoint.price) / 2),
+                    dx: 50,
+                    dy: 0,
+                    subject: {
+                        text: "",
+                        y1: yScale(aaplPoint.price),
+                        y2: yScale(googPoint.price)
+                    }
+                });
+            }
+
+            // Add first point annotation
+            annotations.push({
+                type: d3.annotationCalloutElbow,
+                note: {
+                    title: "First Point!",
+                    padding: 5
+                },
+                x: xScale(firstGoogPoint.date),
+                y: yScale(firstGoogPoint.price),
+                dx: 55,
+                dy: -35,
+                connector: {
+                    end: "arrow"
+                }
+            });
+
+            // Add annotations to the chart
+            const makeAnnotations = d3.annotation()
+                .annotations(annotations);
+
+            svg.append("g")
+                .attr("class", "annotation-group")
+                .call(makeAnnotations);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,584 @@
+{
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "background": "white",
+    "height": 200,
+    "style": "cell",
+    "data": [
+        {
+            "name": "source_0",
+            "values": [
+                {
+                    "category": "A",
+                    "group": "x",
+                    "value": 0.1
+                },
+                {
+                    "category": "A",
+                    "group": "y",
+                    "value": 0.6
+                },
+                {
+                    "category": "A",
+                    "group": "z",
+                    "value": 0.9
+                },
+                {
+                    "category": "B",
+                    "group": "x",
+                    "value": 0.7
+                },
+                {
+                    "category": "B",
+                    "group": "y",
+                    "value": 0.2
+                },
+                {
+                    "category": "B",
+                    "group": "z",
+                    "value": 1.1
+                },
+                {
+                    "category": "C",
+                    "group": "x",
+                    "value": 0.6
+                },
+                {
+                    "category": "C",
+                    "group": "y",
+                    "value": 0.1
+                },
+                {
+                    "category": "C",
+                    "group": "z",
+                    "value": 0.2
+                }
+            ]
+        },
+        {
+            "name": "data_0",
+            "source": "source_0",
+            "transform": [
+                {
+                    "type": "stack",
+                    "groupby": [
+                        "category",
+                        "group"
+                    ],
+                    "field": "value",
+                    "as": [
+                        "value_start",
+                        "value_end"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "arrow_data",
+            "values": [
+                {
+                    "category1": "A",
+                    "group1": "z",
+                    "category2": "B",
+                    "group2": "z"
+                }
+            ]
+        },
+        {
+            "name": "highlight_data",
+            "values": [
+                {
+                    "category": "C",
+                    "group": "x"
+                }
+            ]
+        },
+        {
+            "name": "bracket_data",
+            "values": [
+                {
+                    "category1": "A",
+                    "category2": "B"
+                }
+            ]
+        }
+    ],
+    "signals": [
+        {
+            "name": "x_step",
+            "update": "20 * bandspace(domain('xOffset').length, 0, 0) / (1-0.2)"
+        },
+        {
+            "name": "width",
+            "update": "bandspace(domain('x').length, 0.2, 0.2) * x_step"
+        }
+    ],
+    "marks": [
+        {
+            "name": "marks",
+            "type": "rect",
+            "style": [
+                "bar"
+            ],
+            "from": {
+                "data": "data_0"
+            },
+            "encode": {
+                "update": {
+                    "fill": {
+                        "scale": "color",
+                        "field": "group"
+                    },
+                    "x": {
+                        "scale": "x",
+                        "field": "category",
+                        "offset": {
+                            "scale": "xOffset",
+                            "field": "group"
+                        }
+                    },
+                    "width": {
+                        "signal": "max(0.25, bandwidth('xOffset'))"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "field": "value_end"
+                    },
+                    "y2": {
+                        "scale": "y",
+                        "field": "value_start"
+                    }
+                }
+            }
+        },
+        {
+            "name": "arrow_vertical1",
+            "type": "rule",
+            "from": {
+                "data": "arrow_data"
+            },
+            "encode": {
+                "enter": {
+                    "stroke": {
+                        "value": "black"
+                    },
+                    "strokeWidth": {
+                        "value": 1.5
+                    }
+                },
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "field": "category1",
+                        "offset": {
+                            "signal": "scale('xOffset', 'z') + bandwidth('xOffset')/2"
+                        }
+                    },
+                    "y": {
+                        "scale": "y",
+                        "signal": "0.9"
+                    },
+                    "y2": {
+                        "scale": "y",
+                        "signal": "1.5"
+                    }
+                }
+            }
+        },
+        {
+            "name": "arrow_horizontal",
+            "type": "rule",
+            "from": {
+                "data": "arrow_data"
+            },
+            "encode": {
+                "enter": {
+                    "stroke": {
+                        "value": "black"
+                    },
+                    "strokeWidth": {
+                        "value": 1.5
+                    }
+                },
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "field": "category1",
+                        "offset": {
+                            "signal": "scale('xOffset', 'z') + bandwidth('xOffset')/2"
+                        }
+                    },
+                    "x2": {
+                        "scale": "x",
+                        "field": "category2",
+                        "offset": {
+                            "signal": "scale('xOffset', 'z') + bandwidth('xOffset')/2"
+                        }
+                    },
+                    "y": {
+                        "scale": "y",
+                        "signal": "1.5"
+                    }
+                }
+            }
+        },
+        {
+            "name": "arrow_vertical2",
+            "type": "rule",
+            "from": {
+                "data": "arrow_data"
+            },
+            "encode": {
+                "enter": {
+                    "stroke": {
+                        "value": "black"
+                    },
+                    "strokeWidth": {
+                        "value": 1.5
+                    }
+                },
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "field": "category2",
+                        "offset": {
+                            "signal": "scale('xOffset', 'z') + bandwidth('xOffset')/2"
+                        }
+                    },
+                    "y": {
+                        "scale": "y",
+                        "signal": "1.5"
+                    },
+                    "y2": {
+                        "scale": "y",
+                        "signal": "1.1"
+                    }
+                }
+            }
+        },
+        {
+            "name": "arrow_tip",
+            "type": "symbol",
+            "from": {
+                "data": "arrow_data"
+            },
+            "encode": {
+                "enter": {
+                    "shape": {
+                        "value": "triangle-down"
+                    },
+                    "size": {
+                        "value": 80
+                    },
+                    "fill": {
+                        "value": "black"
+                    }
+                },
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "field": "category2",
+                        "offset": {
+                            "signal": "scale('xOffset', 'z') + bandwidth('xOffset')/2"
+                        }
+                    },
+                    "y": {
+                        "scale": "y",
+                        "signal": "1.1"
+                    }
+                }
+            }
+        },
+        {
+            "name": "arrow_text",
+            "type": "text",
+            "from": {
+                "data": "arrow_data"
+            },
+            "encode": {
+                "enter": {
+                    "align": {
+                        "value": "center"
+                    },
+                    "baseline": {
+                        "value": "bottom"
+                    },
+                    "fontSize": {
+                        "value": 12
+                    },
+                    "fontWeight": {
+                        "value": "normal"
+                    },
+                    "text": {
+                        "value": "Value Increase"
+                    }
+                },
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "signal": "(scale('x', 'A') + scale('x', 'B'))/2 + bandwidth('x')/2"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "signal": "1.6"
+                    }
+                }
+            }
+        },
+        {
+            "name": "highlight_rect",
+            "type": "rect",
+            "from": {
+                "data": "highlight_data"
+            },
+            "encode": {
+                "enter": {
+                    "fill": {
+                        "value": "transparent"
+                    },
+                    "stroke": {
+                        "value": "black"
+                    },
+                    "strokeWidth": {
+                        "value": 1.5
+                    }
+                },
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "field": "category",
+                        "offset": {
+                            "scale": "xOffset",
+                            "field": "group",
+                            "offset": -2
+                        }
+                    },
+                    "width": {
+                        "signal": "bandwidth('xOffset') + 4"
+                    },
+                    "y": {
+                        "scale": "y",
+                        "signal": "0.6",
+                        "offset": -2
+                    },
+                    "height": {
+                        "value": 40
+                    }
+                }
+            }
+        },
+        {
+            "name": "highlight_text",
+            "type": "text",
+            "from": {
+                "data": "highlight_data"
+            },
+            "encode": {
+                "enter": {
+                    "align": {
+                        "value": "center"
+                    },
+                    "baseline": {
+                        "value": "bottom"
+                    },
+                    "fontSize": {
+                        "value": 12
+                    },
+                    "fontWeight": {
+                        "value": "normal"
+                    },
+                    "text": {
+                        "value": "Group C x value"
+                    }
+                },
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "field": "category",
+                        "offset": {
+                            "signal": "scale('xOffset', 'x') + bandwidth('xOffset')/2"
+                        }
+                    },
+                    "y": {
+                        "scale": "y",
+                        "signal": "0.8"
+                    }
+                }
+            }
+        },
+        {
+            "name": "bracket_line",
+            "type": "rule",
+            "from": {
+                "data": "bracket_data"
+            },
+            "encode": {
+                "enter": {
+                    "stroke": {
+                        "value": "black"
+                    },
+                    "strokeWidth": {
+                        "value": 1.5
+                    }
+                },
+                "update": {
+                    "x": {
+                        "scale": "x",
+                        "field": "category1",
+                        "offset": {
+                            "signal": "bandwidth('x')/2"
+                        }
+                    },
+                    "x2": {
+                        "scale": "x",
+                        "field": "category2",
+                        "offset": {
+                            "signal": "bandwidth('x')/2"
+                        }
+                    },
+                    "y": {
+                        "signal": "height + 30"
+                    }
+                }
+            }
+        },
+        {
+            "name": "bracket_text",
+            "type": "text",
+            "from": {
+                "data": "bracket_data"
+            },
+            "encode": {
+                "enter": {
+                    "align": {
+                        "value": "center"
+                    },
+                    "baseline": {
+                        "value": "top"
+                    },
+                    "fontSize": {
+                        "value": 12
+                    },
+                    "fontWeight": {
+                        "value": "normal"
+                    },
+                    "text": {
+                        "value": "Categories A and B"
+                    }
+                },
+                "update": {
+                    "x": {
+                        "signal": "(scale('x', 'A') + scale('x', 'B'))/2 + bandwidth('x')/2"
+                    },
+                    "y": {
+                        "signal": "height + 40"
+                    }
+                }
+            }
+        }
+    ],
+    "scales": [
+        {
+            "name": "x",
+            "type": "band",
+            "domain": {
+                "data": "data_0",
+                "field": "category",
+                "sort": true
+            },
+            "range": {
+                "step": {
+                    "signal": "x_step"
+                }
+            },
+            "paddingInner": 0.2,
+            "paddingOuter": 0.2
+        },
+        {
+            "name": "y",
+            "type": "linear",
+            "domain": {
+                "data": "data_0",
+                "fields": [
+                    "value_start",
+                    "value_end"
+                ]
+            },
+            "range": [
+                {
+                    "signal": "height"
+                },
+                0
+            ],
+            "nice": true,
+            "zero": true
+        },
+        {
+            "name": "xOffset",
+            "type": "band",
+            "domain": {
+                "data": "data_0",
+                "field": "group",
+                "sort": true
+            },
+            "range": {
+                "step": 20
+            }
+        },
+        {
+            "name": "color",
+            "type": "ordinal",
+            "domain": {
+                "data": "data_0",
+                "field": "group",
+                "sort": true
+            },
+            "range": "category"
+        }
+    ],
+    "axes": [
+        {
+            "scale": "y",
+            "orient": "left",
+            "gridScale": "x",
+            "grid": true,
+            "tickCount": {
+                "signal": "ceil(height/40)"
+            },
+            "domain": false,
+            "labels": false,
+            "aria": false,
+            "maxExtent": 0,
+            "minExtent": 0,
+            "ticks": false,
+            "zindex": 0
+        },
+        {
+            "scale": "x",
+            "orient": "bottom",
+            "grid": false,
+            "title": "category",
+            "labelAlign": "right",
+            "labelAngle": 270,
+            "labelBaseline": "middle",
+            "zindex": 0
+        },
+        {
+            "scale": "y",
+            "orient": "left",
+            "grid": false,
+            "title": "value",
+            "labelOverlap": true,
+            "tickCount": {
+                "signal": "ceil(height/40)"
+            },
+            "zindex": 0
+        }
+    ],
+    "legends": [
+        {
+            "fill": "color",
+            "symbolType": "square",
+            "title": "group"
+        }
+    ]
+}
